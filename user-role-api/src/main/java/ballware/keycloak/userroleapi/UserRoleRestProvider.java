@@ -1,4 +1,4 @@
-package ballware.keycloak;
+package ballware.keycloak.userroleapi;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,7 +17,7 @@ import org.keycloak.services.managers.AuthenticationManager.AuthResult;
 import org.keycloak.services.resource.RealmResourceProvider;
 import org.keycloak.utils.MediaType;
 
-import ballware.keycloak.model.User;
+import ballware.keycloak.userroleapi.model.User;
 
 public class UserRoleRestProvider implements RealmResourceProvider {
     private final KeycloakSession session;

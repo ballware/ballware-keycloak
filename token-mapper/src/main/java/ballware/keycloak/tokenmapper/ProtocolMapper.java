@@ -1,4 +1,4 @@
-package ballware.keycloak;
+package ballware.keycloak.tokenmapper;
 
 import java.util.ArrayList;
 import java.util.List;

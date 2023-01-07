@@ -1,4 +1,4 @@
-package ballware.keycloak;
+package ballware.keycloak.userroleapi;
 
 import org.keycloak.Config.Scope;
 import org.keycloak.models.KeycloakSession;
