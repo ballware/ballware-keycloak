@@ -6,16 +6,20 @@ import java.util.stream.Collectors;
 import javax.ws.rs.Encoded;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.OPTIONS;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import org.jboss.resteasy.annotations.cache.NoCache;
+import org.jboss.resteasy.spi.HttpRequest;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.services.managers.AppAuthManager;
 import org.keycloak.services.managers.AuthenticationManager.AuthResult;
 import org.keycloak.services.resource.RealmResourceProvider;
+import org.keycloak.services.resources.Cors;
 import org.keycloak.utils.MediaType;
 
 import ballware.keycloak.userroleapi.model.Role;
@@ -37,6 +41,13 @@ public class UserRoleRestProvider implements RealmResourceProvider {
     public Object getResource() {
         return this;
     }
+
+    @OPTIONS
+	@Path("{any:.*}")
+	public Response preflight() {
+		HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+		return Cors.add(request, Response.ok()).auth().preflight().build();
+	}
 
     @GET
     @Path("user/all")
