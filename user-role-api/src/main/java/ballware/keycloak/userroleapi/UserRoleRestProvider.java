@@ -11,12 +11,14 @@ import javax.ws.rs.Produces;
 
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.services.managers.AppAuthManager;
 import org.keycloak.services.managers.AuthenticationManager.AuthResult;
 import org.keycloak.services.resource.RealmResourceProvider;
 import org.keycloak.utils.MediaType;
 
+import ballware.keycloak.userroleapi.model.Role;
 import ballware.keycloak.userroleapi.model.User;
 
 public class UserRoleRestProvider implements RealmResourceProvider {
@@ -37,7 +39,7 @@ public class UserRoleRestProvider implements RealmResourceProvider {
     }
 
     @GET
-    @Path("users")
+    @Path("user/all")
     @NoCache
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
@@ -55,4 +57,23 @@ public class UserRoleRestProvider implements RealmResourceProvider {
         return new User(um.getUsername(), um.getFirstName(), um.getLastName());
 
     }
+
+    @GET
+    @Path("role/all")
+    @NoCache
+    @Produces({MediaType.APPLICATION_JSON})
+    @Encoded
+    public List<Role> getRoles() {
+        if (this.auth == null || this.auth.getToken() == null) {
+            throw new NotAuthorizedException("Bearer");
+        }
+
+        return session.roles().searchForRolesStream(session.getContext().getRealm(), "", null, null)
+            .map(e -> toRoleDetail(e))
+            .collect(Collectors.toList());
+    }
+
+    private Role toRoleDetail(RoleModel rm) {
+        return new Role(rm.getName());
+    } 
 }
