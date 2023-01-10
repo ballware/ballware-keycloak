@@ -1,4 +1,4 @@
-package ballware.keycloak.userroleapi;
+package ballware.keycloak.userapi;
 
 import org.keycloak.Config.Scope;
 import org.keycloak.models.KeycloakSession;
@@ -6,11 +6,11 @@ import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.services.resource.RealmResourceProvider;
 import org.keycloak.services.resource.RealmResourceProviderFactory;
 
-public class UserRoleRestProviderFactory implements RealmResourceProviderFactory {
-    public static final String ID = "ballware-userrole-rest";
+public class UserRestProviderFactory implements RealmResourceProviderFactory {
+    public static final String ID = "ballware-user-api";
 
     public RealmResourceProvider create(KeycloakSession session) {
-        return new UserRoleRestProvider(session);
+        return new UserRestProvider(session);
     }
 
     public void init(Scope config) {

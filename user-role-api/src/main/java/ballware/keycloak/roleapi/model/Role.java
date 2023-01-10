@@ -1,4 +1,4 @@
-package ballware.keycloak.userroleapi.model;
+package ballware.keycloak.roleapi.model;
 
 public class Role {
     private String name;

@@ -1,1 +1,2 @@
-ballware.keycloak.userroleapi.UserRoleRestProviderFactory
+ballware.keycloak.userapi.UserRestProviderFactory
+ballware.keycloak.roleapi.RoleRestProviderFactory
