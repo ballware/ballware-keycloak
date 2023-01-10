@@ -1,5 +1,6 @@
 package ballware.keycloak.roleapi;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,16 +58,21 @@ public class RoleRestProvider implements RealmResourceProvider {
             throw new NotAuthorizedException("Bearer");
         }
 
+        String tenant = this.auth.getToken().getOtherClaims().getOrDefault("tenant", "undefined").toString();
+        
+        this.auth.getToken().getOtherClaims().get("tenant").toString();
+
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
         return Cors.add(request, Response
             .ok(session.roles().searchForRolesStream(session.getContext().getRealm(), "", null, null)
+                .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                 .map(e -> toRoleDetail(e))
                 .collect(Collectors.toList()))
             ).auth().allowedOrigins(this.auth.getToken()).build();
     }
 
     private Role toRoleDetail(RoleModel rm) {
-        return new Role(rm.getName());
+        return new Role(rm.getId(), rm.getName());
     } 
 }
