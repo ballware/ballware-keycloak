@@ -63,7 +63,7 @@ public class RoleRestProvider implements RealmResourceProvider {
             .ok(session.roles().searchForRolesStream(session.getContext().getRealm(), "", null, null)
                 .map(e -> toRoleDetail(e))
                 .collect(Collectors.toList()))
-            ).auth().build();
+            ).auth().allowedOrigins(this.auth.getToken()).build();
     }
 
     private Role toRoleDetail(RoleModel rm) {
