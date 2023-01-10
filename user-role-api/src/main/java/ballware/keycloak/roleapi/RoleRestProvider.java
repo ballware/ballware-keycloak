@@ -52,14 +52,18 @@ public class RoleRestProvider implements RealmResourceProvider {
     @NoCache
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
-    public List<Role> getRoles() {
+    public Response getRoles() {
         if (this.auth == null || this.auth.getToken() == null) {
             throw new NotAuthorizedException("Bearer");
         }
 
-        return session.roles().searchForRolesStream(session.getContext().getRealm(), "", null, null)
-            .map(e -> toRoleDetail(e))
-            .collect(Collectors.toList());
+        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+
+        return Cors.add(request, Response
+            .ok(session.roles().searchForRolesStream(session.getContext().getRealm(), "", null, null)
+                .map(e -> toRoleDetail(e))
+                .collect(Collectors.toList()))
+            ).auth().build();
     }
 
     private Role toRoleDetail(RoleModel rm) {
