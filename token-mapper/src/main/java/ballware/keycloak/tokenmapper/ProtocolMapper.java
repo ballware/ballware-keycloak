@@ -2,6 +2,7 @@ package ballware.keycloak.tokenmapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,13 @@ public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAc
     public static final String PROVIDER_ID = "ballware-token-mapper";
 
     static {
+        ProviderConfigProperty attributeNameProperty = new ProviderConfigProperty();
+        attributeNameProperty.setName(ProtocolMapperUtils.USER_ATTRIBUTE);
+        attributeNameProperty.setLabel(ProtocolMapperUtils.USER_MODEL_ATTRIBUTE_LABEL);
+        attributeNameProperty.setHelpText(ProtocolMapperUtils.USER_MODEL_ATTRIBUTE_HELP_TEXT);
+        attributeNameProperty.setType(ProviderConfigProperty.STRING_TYPE);
+        configProperties.add(attributeNameProperty);
+
         // The builtin protocol mapper let the user define under which claim name (key)
         // the protocol mapper writes its value. To display this option in the generic dialog
         // in keycloak, execute the following method.
@@ -47,12 +55,12 @@ public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAc
         // implement the corresponding interface.
         OIDCAttributeMapperHelper.addIncludeInTokensConfig(configProperties, ProtocolMapper.class);        
 
-        ProviderConfigProperty property = new ProviderConfigProperty();
-        property.setName(ProtocolMapperUtils.MULTIVALUED);
-        property.setLabel(ProtocolMapperUtils.MULTIVALUED_LABEL);
-        property.setHelpText(ProtocolMapperUtils.MULTIVALUED_HELP_TEXT);
-        property.setType(ProviderConfigProperty.BOOLEAN_TYPE);
-        configProperties.add(property);
+        ProviderConfigProperty multivalueProperty = new ProviderConfigProperty();
+        multivalueProperty.setName(ProtocolMapperUtils.MULTIVALUED);
+        multivalueProperty.setLabel(ProtocolMapperUtils.MULTIVALUED_LABEL);
+        multivalueProperty.setHelpText(ProtocolMapperUtils.MULTIVALUED_HELP_TEXT);
+        multivalueProperty.setType(ProviderConfigProperty.BOOLEAN_TYPE);
+        configProperties.add(multivalueProperty);
     }
 
     @Override
@@ -62,12 +70,12 @@ public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAc
 
     @Override
     public String getDisplayType() {
-        return "ballware role and user attributes to token mapper";
+        return "ballware role attributes to token mapper";
     }
 
     @Override
     public String getHelpText() {
-        return "Maps application provided attributes in roles and users to token";
+        return "Maps application provided attributes in roles to token";
     }
 
     @Override
@@ -86,6 +94,9 @@ public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAc
                             final UserSessionModel userSession,
                             final KeycloakSession keycloakSession,
                             final ClientSessionContext clientSessionCtx) {
+
+        String attributeName = mappingModel.getConfig().get(ProtocolMapperUtils.USER_ATTRIBUTE);
+                                
         // adds our data to the token. Uses the parameters like the claim name which were set by the user
         // when this protocol mapper was configured in keycloak. Note that the parameters which can
         // be configured in keycloak for this protocol mapper were set in the static intializer of this class.
@@ -93,17 +104,31 @@ public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAc
         // Sets a static "Hello world" string, but we could write a dynamic value like a group attribute here too.
         AccessToken.Access access = RoleResolveUtil.getResolvedRealmRoles(keycloakSession, clientSessionCtx, false);
 
-        Set<String> roleNames = access.getRoles().stream().collect(Collectors.toSet());
+        Optional<String> tenant = userSession.getUser().getAttributeStream("tenant").findFirst();
 
-        for (String role : roleNames) {
-            RoleModel roleModel = userSession.getRealm().getRole(role);
-            //roleModel.getAttributeStream(role)
-        }
-        
-        if ("true".equals(mappingModel.getConfig().get(ProtocolMapperUtils.MULTIVALUED))) {
-            OIDCAttributeMapperHelper.mapClaim(token, mappingModel, roleNames);
-        } else {
-            OIDCAttributeMapperHelper.mapClaim(token, mappingModel, roleNames.toString());
+        if (tenant.isPresent()) {
+            List<String> claimValues = new ArrayList<String>();
+
+            Set<String> roleNames = access.getRoles().stream().collect(Collectors.toSet());
+
+            for (String role : roleNames) {
+                RoleModel roleModel = userSession.getRealm().getRole(role);
+
+                if (roleModel.getAttributeStream("tenant").findFirst().equals(tenant)) {
+                    roleModel.getAttributes().forEach((key, values) -> {
+                        if (key.equals(attributeName)) {
+                            claimValues.addAll(values);
+                        }
+                    });
+                }
+            }                
+
+
+            if (OIDCAttributeMapperHelper.isMultivalued(mappingModel)) {
+                OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claimValues);
+            } else {
+                OIDCAttributeMapperHelper.mapClaim(token, mappingModel, String.join(",", claimValues));
+            }
         }
         
     }
