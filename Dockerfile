@@ -27,6 +27,10 @@ RUN /opt/keycloak/bin/kc.sh build --transaction-xa-enabled=false
 FROM quay.io/keycloak/keycloak:latest
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
+USER root 
+RUN microdnf update && microdnf -y install --nodocs tar gzip git && microdnf clean all
+USER 1000
+
 # change these values to point to a running postgres instance
 #ENV KC_DB_URL=<DBURL>
 #ENV KC_DB_USERNAME=<DBUSERNAME>

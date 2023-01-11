@@ -1,0 +1,12 @@
+{
+    "name": "ballwarekeycloak",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "keycloak",
+    "workspaceFolder": "/workspace",
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": [
+        "vscjava.vscode-java-pack"
+    ]
+}

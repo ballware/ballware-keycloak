@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  keycloak:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: ballwarekeycloak_app
+    environment:
+      KC_DB: mssql
+      KC_DB_USERNAME: sa
+      KC_DB_PASSWORD: ballware#32361
+      KC_DB_URL: jdbc:sqlserver://db;encrypt=false;databaseName=keycloak;
+      KC_HOSTNAME: localhost
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      JDBC_PARAMS: trustServerCertificate=false;encrypt=false
+      DEBUG_PORT: '*:8000'
+    ports:
+      - '8080:8080'
+      - '8443:8443'
+      - '8000:8000'
+    volumes:
+      - ..:/workspace
+    command: start-dev --debug --https-certificate-file=/workspace/localhost.pem --https-certificate-key-file=/workspace/localhost-key.pem  --hostname-strict=false --transaction-xa-enabled=false --log-level=DEBUG
+    depends_on:
+      - db
+      - dbscripts
+  db:
+    image: mcr.microsoft.com/azure-sql-edge
+    ports:
+      - 1433:1433
+    volumes:
+      - ./data/sql:/var/opt
+    environment:
+      ACCEPT_EULA: "1"
+      MSSQL_SA_PASSWORD: "ballware#32361"
+  dbscripts:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      - db
+    command: /bin/bash -c 'until /opt/mssql-tools/bin/sqlcmd -S db -U sa -P "ballware#32361" -Q "create database keycloak"; do sleep 5; done'

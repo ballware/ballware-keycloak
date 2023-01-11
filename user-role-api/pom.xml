@@ -53,5 +53,11 @@
       <scope>provided</scope>
       <version>${keycloak.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-model-jpa</artifactId>
+      <scope>provided</scope>
+      <version>${keycloak.version}</version>
+    </dependency>
   </dependencies>
 </project>
