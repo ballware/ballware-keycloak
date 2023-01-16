@@ -1,2 +1,5 @@
 localhost-key.pem
 localhost.pem
+
+.DS_Store
+node

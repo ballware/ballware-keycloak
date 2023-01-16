@@ -1,0 +1,6 @@
+{
+  "themes": [{
+    "name" : "ballware",
+    "types": [ "login", "account", "common" ]
+  }]
+}

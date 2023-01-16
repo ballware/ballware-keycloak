@@ -1,3 +1,9 @@
+
+FROM maven:3-openjdk-18 as themebuilder
+COPY ballware-theme/src /home/app/src
+COPY ballware-theme/pom.xml /home/app
+RUN mvn -f /home/app/pom.xml clean package
+
 FROM maven:3-openjdk-18 as mapperbuilder
 COPY token-mapper/src /home/app/src
 COPY token-mapper/pom.xml /home/app
@@ -9,6 +15,7 @@ COPY user-role-api/pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean package
 
 FROM quay.io/keycloak/keycloak:latest as builder
+COPY --from=themebuilder  /home/app/target/*.jar /opt/keycloak/providers
 COPY --from=mapperbuilder  /home/app/target/*.jar /opt/keycloak/providers
 COPY --from=apibuilder  /home/app/target/*.jar /opt/keycloak/providers
 

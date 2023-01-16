@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>de.ballware</groupId>
+    <artifactId>keycloak-ballware-theme</artifactId>
+    <version>1.0</version>
+
+    <properties>
+        <dir.common>src/main/resources/theme/ballware/common/resources</dir.common>
+        <args.npm.install>ci --no-optional --ignore-scripts</args.npm.install>
+    </properties>
+
+    <build>
+        <plugins>            
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <executions>
+                    <!-- Download NPM tools -->
+                    <execution>
+                        <id>setup-node</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                    </execution>
+                    <!-- Download NPM packages -->
+                    <execution>
+                        <id>npm-install-common</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <workingDirectory>${dir.common}</workingDirectory>
+                            <arguments>${args.npm.install}</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <nodeVersion>v19.3.0</nodeVersion>
+                    <installDirectory>../</installDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
