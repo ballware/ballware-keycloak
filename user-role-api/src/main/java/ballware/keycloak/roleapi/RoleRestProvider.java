@@ -78,7 +78,9 @@ public class RoleRestProvider implements RealmResourceProvider {
             .ok(session.roles().searchForRolesStream(session.getContext().getRealm(), "", null, null)
                 .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                 .map(e -> toRoleDetail(e, 
-                    session.users().getRoleMembersStream(session.getContext().getRealm(), e).collect(Collectors.toList())
+                    session.users().getRoleMembersStream(session.getContext().getRealm(), e)
+                        .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
+                        .collect(Collectors.toList())
                 ))
                 .collect(Collectors.toList()))
             ).auth().allowedOrigins(this.auth.getToken()).build();
@@ -103,7 +105,9 @@ public class RoleRestProvider implements RealmResourceProvider {
         if (role != null && role.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
             return Cors.add(request, Response
                 .ok(this.toRoleDetail(role,
-                    session.users().getRoleMembersStream(session.getContext().getRealm(), role).collect(Collectors.toList())
+                    session.users().getRoleMembersStream(session.getContext().getRealm(), role)
+                        .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
+                        .collect(Collectors.toList())
                 ))
             ).auth().allowedOrigins(this.auth.getToken()).build();    
         }
@@ -175,7 +179,9 @@ public class RoleRestProvider implements RealmResourceProvider {
 
             return Cors.add(request, Response
                 .ok(this.toRoleDetail(existingRole,
-                    session.users().getRoleMembersStream(session.getContext().getRealm(), existingRole).collect(Collectors.toList())
+                    session.users().getRoleMembersStream(session.getContext().getRealm(), existingRole)
+                        .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
+                        .collect(Collectors.toList())
                 ))
             ).auth().allowedOrigins(this.auth.getToken()).build();    
         } else if (existingRole == null) {
@@ -189,7 +195,9 @@ public class RoleRestProvider implements RealmResourceProvider {
 
             return Cors.add(request, Response
                 .ok(this.toRoleDetail(newRole,
-                    session.users().getRoleMembersStream(session.getContext().getRealm(), newRole).collect(Collectors.toList())
+                    session.users().getRoleMembersStream(session.getContext().getRealm(), newRole)
+                        .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
+                        .collect(Collectors.toList())
                 ))
             ).auth().allowedOrigins(this.auth.getToken()).build();   
         }
@@ -220,7 +228,9 @@ public class RoleRestProvider implements RealmResourceProvider {
 
             return Cors.add(request, Response
                 .ok(this.toRoleDetail(existingRole,
-                    session.users().getRoleMembersStream(session.getContext().getRealm(), existingRole).collect(Collectors.toList())
+                    session.users().getRoleMembersStream(session.getContext().getRealm(), existingRole)
+                        .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
+                        .collect(Collectors.toList())
                 ))
             ).auth().allowedOrigins(this.auth.getToken()).build();    
         }
@@ -240,7 +250,7 @@ public class RoleRestProvider implements RealmResourceProvider {
             }
         });
 
-        String userSummary = assignedUser.stream().map(user -> user.getUsername()).collect(Collectors.joining(""));
+        String userSummary = assignedUser.stream().map(user -> user.getUsername()).collect(Collectors.joining(", "));
 
         return new Role(
             rm.getId(), 
