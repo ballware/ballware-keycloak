@@ -28,6 +28,7 @@ import org.jboss.resteasy.annotations.cache.NoCache;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserModel;
 import org.keycloak.services.managers.AppAuthManager;
 import org.keycloak.services.managers.AuthenticationManager.AuthResult;
 import org.keycloak.services.resource.RealmResourceProvider;
@@ -76,7 +77,9 @@ public class RoleRestProvider implements RealmResourceProvider {
         return Cors.add(request, Response
             .ok(session.roles().searchForRolesStream(session.getContext().getRealm(), "", null, null)
                 .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
-                .map(e -> toRoleDetail(e))
+                .map(e -> toRoleDetail(e, 
+                    session.users().getRoleMembersStream(session.getContext().getRealm(), e).collect(Collectors.toList())
+                ))
                 .collect(Collectors.toList()))
             ).auth().allowedOrigins(this.auth.getToken()).build();
     }
@@ -99,7 +102,9 @@ public class RoleRestProvider implements RealmResourceProvider {
 
         if (role != null && role.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
             return Cors.add(request, Response
-                .ok(this.toRoleDetail(role))
+                .ok(this.toRoleDetail(role,
+                    session.users().getRoleMembersStream(session.getContext().getRealm(), role).collect(Collectors.toList())
+                ))
             ).auth().allowedOrigins(this.auth.getToken()).build();    
         }
 
@@ -122,7 +127,7 @@ public class RoleRestProvider implements RealmResourceProvider {
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
         return Cors.add(request, Response
-            .ok(new Role(UUID.randomUUID().toString(), "", null))
+            .ok(new Role(UUID.randomUUID().toString(), "", null, null))
             ).auth().allowedOrigins(this.auth.getToken()).build();
     }
 
@@ -169,7 +174,9 @@ public class RoleRestProvider implements RealmResourceProvider {
             });
 
             return Cors.add(request, Response
-                .ok(this.toRoleDetail(existingRole))
+                .ok(this.toRoleDetail(existingRole,
+                    session.users().getRoleMembersStream(session.getContext().getRealm(), existingRole).collect(Collectors.toList())
+                ))
             ).auth().allowedOrigins(this.auth.getToken()).build();    
         } else if (existingRole == null) {
             assertUserHasClaim("right", "identity.role.add");
@@ -181,7 +188,9 @@ public class RoleRestProvider implements RealmResourceProvider {
             });
 
             return Cors.add(request, Response
-                .ok(this.toRoleDetail(newRole))
+                .ok(this.toRoleDetail(newRole,
+                    session.users().getRoleMembersStream(session.getContext().getRealm(), newRole).collect(Collectors.toList())
+                ))
             ).auth().allowedOrigins(this.auth.getToken()).build();   
         }
 
@@ -210,7 +219,9 @@ public class RoleRestProvider implements RealmResourceProvider {
             session.roles().removeRole(existingRole);
 
             return Cors.add(request, Response
-                .ok(this.toRoleDetail(existingRole))
+                .ok(this.toRoleDetail(existingRole,
+                    session.users().getRoleMembersStream(session.getContext().getRealm(), existingRole).collect(Collectors.toList())
+                ))
             ).auth().allowedOrigins(this.auth.getToken()).build();    
         }
 
@@ -219,7 +230,7 @@ public class RoleRestProvider implements RealmResourceProvider {
         ).auth().allowedOrigins(this.auth.getToken()).build();
     }
 
-    private Role toRoleDetail(RoleModel rm) {
+    private Role toRoleDetail(RoleModel rm, List<UserModel> assignedUser) {
 
         List<RoleClaim> claims = new ArrayList<RoleClaim>();
 
@@ -229,10 +240,13 @@ public class RoleRestProvider implements RealmResourceProvider {
             }
         });
 
+        String userSummary = assignedUser.stream().map(user -> user.getUsername()).collect(Collectors.joining(""));
+
         return new Role(
             rm.getId(), 
             rm.getName(),
-            claims
+            claims,
+            userSummary
         );
     } 
 

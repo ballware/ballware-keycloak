@@ -11,15 +11,17 @@ public class Role {
     private String id;
     private String displayName;
     private List<RoleClaim> claims;
+    private String userSummary;
 
     public Role() {
 
     }
 
-    public Role(String id, String displayName, List<RoleClaim> claims) {
+    public Role(String id, String displayName, List<RoleClaim> claims, String userSummary) {
         this.id = id;
         this.displayName = displayName;
         this.claims = claims;
+        this.userSummary = userSummary;
     }
 
     public String getId() {
@@ -36,6 +38,14 @@ public class Role {
 
     public void setDisplayName(String value) {
         this.displayName = value;
+    }
+
+    public String getUserSummary() {
+        return userSummary;
+    }
+
+    public void setUserSummary(String value) {
+        this.userSummary = value;
     }
 
     @JsonGetter("roleClaims")
