@@ -37,6 +37,7 @@ import org.keycloak.utils.MediaType;
 
 import ballware.keycloak.roleapi.model.Role;
 import ballware.keycloak.roleapi.model.RoleClaim;
+import ballware.keycloak.roleapi.model.RoleUser;
 
 public class RoleRestProvider implements RealmResourceProvider {
     private final KeycloakSession session;
@@ -131,7 +132,7 @@ public class RoleRestProvider implements RealmResourceProvider {
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
         return Cors.add(request, Response
-            .ok(new Role(UUID.randomUUID().toString(), "", null, null))
+            .ok(new Role(UUID.randomUUID().toString(), "", null, null, null))
             ).auth().allowedOrigins(this.auth.getToken()).build();
     }
 
@@ -250,12 +251,15 @@ public class RoleRestProvider implements RealmResourceProvider {
             }
         });
 
+        List<RoleUser> users = assignedUser.stream().map(au -> new RoleUser(rm.getId(), au.getId())).collect(Collectors.toList());
+
         String userSummary = assignedUser.stream().map(user -> user.getUsername()).collect(Collectors.joining(", "));
 
         return new Role(
             rm.getId(), 
             rm.getName(),
             claims,
+            users,
             userSummary
         );
     } 

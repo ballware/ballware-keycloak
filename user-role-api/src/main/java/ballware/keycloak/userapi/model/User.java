@@ -14,18 +14,20 @@ public class User {
     private String lastName;
 
     private List<UserClaim> claims;
+    private List<UserRole> roles;
     private String roleSummary;
 
     public User() {
 
     }
 
-    public User(String id, String userName, String firstName, String lastName, List<UserClaim> claims, String roleSummary) {
+    public User(String id, String userName, String firstName, String lastName, List<UserClaim> claims, List<UserRole> roles, String roleSummary) {
         this.id = id;
         this.userName = userName;
         this.firstName = firstName;
         this.lastName = lastName;
         this.claims = claims;
+        this.roles = roles;
         this.roleSummary = roleSummary;
     }
 
@@ -77,5 +79,15 @@ public class User {
     @JsonSetter("userClaims")
     public void setUserClaims(List<UserClaim> value) {
         this.claims = value;
+    }
+
+    @JsonGetter("roles")
+    public List<UserRole> getUserRoles() {
+        return roles;
+    }
+
+    @JsonSetter("roles")
+    public void setUserRoles(List<UserRole> value) {
+        this.roles = value;
     }
 }

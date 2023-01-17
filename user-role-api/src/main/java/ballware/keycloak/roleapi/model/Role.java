@@ -11,16 +11,18 @@ public class Role {
     private String id;
     private String displayName;
     private List<RoleClaim> claims;
+    private List<RoleUser> users;
     private String userSummary;
 
     public Role() {
 
     }
 
-    public Role(String id, String displayName, List<RoleClaim> claims, String userSummary) {
+    public Role(String id, String displayName, List<RoleClaim> claims, List<RoleUser> users, String userSummary) {
         this.id = id;
         this.displayName = displayName;
         this.claims = claims;
+        this.users = users;
         this.userSummary = userSummary;
     }
 
@@ -56,5 +58,15 @@ public class Role {
     @JsonSetter("roleClaims")
     public void setRoleClaims(List<RoleClaim> value) {
         this.claims = value;
+    }
+
+    @JsonGetter("users")
+    public List<RoleUser> getRoleUsers() {
+        return users;
+    }
+
+    @JsonSetter("users")
+    public void setRoleUsers(List<RoleUser> value) {
+        this.users = value;
     }
 }
