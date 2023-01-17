@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
 
     <#if properties.meta?has_content>
@@ -91,7 +92,7 @@
         <div id="appbar"></div>
         <div class="pt-2 container-fluid">
             <div class="row justify-content-md-center">            
-                <div class="col-lg-auto" style="min-width: 500px;">                        
+                <div class="col-lg-6">                        
                     <div class="dx-fieldset">
                         <div class="dx-fieldset-header"><#nested "dxheader"></div>
                         <#if (auth?has_content && auth.showUsername() && !auth.showResetCredentials())>
@@ -146,55 +147,7 @@
         </script>
         </#if>
     </main>
-<main>
-<div class="${properties.kcLoginClass!}">    
-    <div class="${properties.kcFormCardClass!}">
-        <header class="${properties.kcFormHeaderClass!}">        
-        <#if !(auth?has_content && auth.showUsername() && !auth.showResetCredentials())>
-            <#if displayRequiredFields>
-                <div class="${properties.kcContentWrapperClass!}">
-                    <div class="${properties.kcLabelWrapperClass!} subtitle">
-                        <span class="subtitle"><span class="required">*</span> ${msg("requiredFields")}</span>
-                    </div>
-                    <div class="col-lg-10">
-                        <h1 id="kc-page-title"><#nested "header"></h1>
-                    </div>
-                </div>
-            <#else>
-                <h1 id="kc-page-title"><#nested "header"></h1>
-            </#if>
-        <#else>
-            <#if displayRequiredFields>
-                <div class="${properties.kcContentWrapperClass!}">
-                    <div class="${properties.kcLabelWrapperClass!} subtitle">
-                        <span class="subtitle"><span class="required">*</span> ${msg("requiredFields")}</span>
-                    </div>        
-                </div>
-            <#else>
-                
-            </#if>
-        </#if>
-      </header>
-      <div id="kc-content">
-        <div id="kc-content-wrapper">
 
-          <#nested "form">
-
-          <#if auth?has_content && auth.showTryAnotherWayLink()>
-              <form id="kc-select-try-another-way-form" action="${url.loginAction}" method="post">
-                  <div class="${properties.kcFormGroupClass!}">
-                      <input type="hidden" name="tryAnotherWay" value="on"/>
-                      <a href="#" id="try-another-way"
-                         onclick="document.forms['kc-select-try-another-way-form'].submit();return false;">${msg("doTryAnotherWay")}</a>
-                  </div>
-              </form>
-          </#if>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</main>
 </body>
 </html>
 </#macro>
