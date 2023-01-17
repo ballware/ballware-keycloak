@@ -91,7 +91,7 @@
         <div id="appbar"></div>
         <div class="pt-2 container-fluid">
             <div class="row justify-content-md-center">            
-                <div class="col-md-auto" style="min-width: 500px;">                        
+                <div class="col-lg-auto" style="min-width: 500px;">                        
                     <div class="dx-fieldset">
                         <div class="dx-fieldset-header"><#nested "dxheader"></div>
                         <#if (auth?has_content && auth.showUsername() && !auth.showResetCredentials())>
@@ -156,7 +156,7 @@
                     <div class="${properties.kcLabelWrapperClass!} subtitle">
                         <span class="subtitle"><span class="required">*</span> ${msg("requiredFields")}</span>
                     </div>
-                    <div class="col-md-10">
+                    <div class="col-lg-10">
                         <h1 id="kc-page-title"><#nested "header"></h1>
                     </div>
                 </div>
