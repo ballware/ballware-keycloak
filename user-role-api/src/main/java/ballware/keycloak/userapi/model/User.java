@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 public class User {
     private String id;
     private String userName;
+    private String email;
     private String firstName;
     private String lastName;
 
@@ -21,9 +22,10 @@ public class User {
 
     }
 
-    public User(String id, String userName, String firstName, String lastName, List<UserClaim> claims, List<UserRole> roles, String roleSummary) {
+    public User(String id, String userName, String email, String firstName, String lastName, List<UserClaim> claims, List<UserRole> roles, String roleSummary) {
         this.id = id;
         this.userName = userName;
+        this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
         this.claims = claims;
@@ -53,6 +55,14 @@ public class User {
 
     public void setUserName(String value) {
         this.userName = value;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String value) {
+        this.email = value;
     }
 
     public String getLastName() {
