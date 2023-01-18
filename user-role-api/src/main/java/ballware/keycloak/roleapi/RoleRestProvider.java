@@ -37,6 +37,7 @@ import org.keycloak.utils.MediaType;
 
 import ballware.keycloak.roleapi.model.Role;
 import ballware.keycloak.roleapi.model.RoleClaim;
+import ballware.keycloak.roleapi.model.RoleSelectlistEntry;
 import ballware.keycloak.roleapi.model.RoleUser;
 
 public class RoleRestProvider implements RealmResourceProvider {
@@ -233,6 +234,52 @@ public class RoleRestProvider implements RealmResourceProvider {
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
                 ))
+            ).auth().allowedOrigins(this.auth.getToken()).build();    
+        }
+
+        return Cors.add(request, Response
+            .status(Status.NOT_FOUND)            
+        ).auth().allowedOrigins(this.auth.getToken()).build();
+    }
+
+    @GET
+    @Path("selectlist")
+    @NoCache
+    @Produces({MediaType.APPLICATION_JSON})
+    @Encoded
+    public Response getSelect() {
+        
+        String tenant = assertUserHasTenant();
+        assertUserHasClaim("right", "identity.role.view");
+
+        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+
+        return Cors.add(request, Response
+            .ok(session.roles().searchForRolesStream(session.getContext().getRealm(), "", null, null)
+                .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
+                .map(e -> new RoleSelectlistEntry(e.getId(), e.getName()))
+                .collect(Collectors.toList()))
+            ).auth().allowedOrigins(this.auth.getToken()).build();
+    }
+
+    @GET
+    @Path("selectbyid/{id}")
+    @NoCache
+    @Produces({MediaType.APPLICATION_JSON})
+    @Encoded
+    public Response getSelectById(
+        @PathParam("id") String id) {
+        
+        String tenant = assertUserHasTenant();
+        assertUserHasClaim("right", "identity.role.view");
+
+        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+
+        RoleModel role = session.roles().getRoleById(session.getContext().getRealm(), id);
+
+        if (role != null && role.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
+            return Cors.add(request, Response
+                .ok(new RoleSelectlistEntry(role.getId(), role.getName()))
             ).auth().allowedOrigins(this.auth.getToken()).build();    
         }
 

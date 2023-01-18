@@ -38,6 +38,7 @@ import org.keycloak.utils.MediaType;
 import ballware.keycloak.userapi.model.User;
 import ballware.keycloak.userapi.model.UserClaim;
 import ballware.keycloak.userapi.model.UserRole;
+import ballware.keycloak.userapi.model.UserSelectlistEntry;
 
 public class UserRestProvider implements RealmResourceProvider {
     private final KeycloakSession session;
@@ -234,6 +235,51 @@ public class UserRestProvider implements RealmResourceProvider {
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
                 ))
+            ).auth().allowedOrigins(this.auth.getToken()).build();    
+        }
+
+        return Cors.add(request, Response
+            .status(Status.NOT_FOUND)            
+        ).auth().allowedOrigins(this.auth.getToken()).build();
+    }
+
+    @GET
+    @Path("selectlist")
+    @NoCache
+    @Produces({MediaType.APPLICATION_JSON})
+    @Encoded
+    public Response getSelect() {
+        String tenant = assertUserHasTenant();
+        assertUserHasClaim("right", "identity.user.view");
+
+        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+
+        return Cors.add(request, Response
+            .ok(session.users().searchForUserStream(session.getContext().getRealm(), "")
+                .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
+                .map(e -> new UserSelectlistEntry(e.getId(), e.getUsername()))
+                .collect(Collectors.toList()))
+            ).auth().allowedOrigins(this.auth.getToken()).build();
+    }
+
+    @GET
+    @Path("selectbyid/{id}")
+    @NoCache
+    @Produces({MediaType.APPLICATION_JSON})
+    @Encoded
+    public Response getSelectById(
+        @PathParam("id") String id) {
+        
+        String tenant = assertUserHasTenant();
+        assertUserHasClaim("right", "identity.user.view");
+
+        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+
+        UserModel user = session.users().getUserById(session.getContext().getRealm(), id);
+
+        if (user != null && user.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
+            return Cors.add(request, Response
+                .ok(new UserSelectlistEntry(user.getId(), user.getUsername()))
             ).auth().allowedOrigins(this.auth.getToken()).build();    
         }
 
