@@ -218,6 +218,8 @@ public class UserRestProvider implements RealmResourceProvider {
             UserModel newUser = session.users().addUser(session.getContext().getRealm(), user.getId(), user.getUserName(), true, true);
         
             newUser.setEmail(user.getEmail());
+            newUser.setEmailVerified(true);
+            newUser.setEnabled(true);
 
             foldedClaims.forEach((key, value) -> {
                 newUser.setAttribute(key, value);
