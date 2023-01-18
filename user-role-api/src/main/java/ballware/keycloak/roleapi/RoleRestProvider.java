@@ -179,6 +179,31 @@ public class RoleRestProvider implements RealmResourceProvider {
                 existingRole.setAttribute(key, value);
             });
 
+            if (role.getRoleUsers() != null) {
+                List<String> newUsers = role.getRoleUsers().stream().map(r -> r.getUserId()).collect(Collectors.toList());
+
+                List<String> existingUsers = session.users().getRoleMembersStream(session.getContext().getRealm(), existingRole)
+                    .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
+                    .map(r -> r.getId())
+                    .collect(Collectors.toList());
+
+                existingUsers.forEach(user -> {
+                    if (!newUsers.contains(user)) {
+                        UserModel existingUser = session.users().getUserById(session.getContext().getRealm(), user);
+                    
+                        existingUser.deleteRoleMapping(existingRole);
+                    }
+                });
+
+                newUsers.forEach(user -> {
+                    UserModel newUser = session.users().getUserById(session.getContext().getRealm(), user);
+                    
+                    if (newUser != null && !existingUsers.contains(newUser.getId())) {
+                        newUser.grantRole(existingRole);
+                    }
+                });
+            } 
+
             return Cors.add(request, Response
                 .ok(this.toRoleDetail(existingRole,
                     session.users().getRoleMembersStream(session.getContext().getRealm(), existingRole)
@@ -194,6 +219,13 @@ public class RoleRestProvider implements RealmResourceProvider {
             foldedClaims.forEach((key, value) -> {
                 newRole.setAttribute(key, value);
             });
+
+            if (role.getRoleUsers() != null) {
+                role.getRoleUsers().forEach(user -> {
+                    UserModel newUser = session.users().getUserById(session.getContext().getRealm(), user.getUserId());
+                    newUser.grantRole(newRole);
+                });
+            } 
 
             return Cors.add(request, Response
                 .ok(this.toRoleDetail(newRole,

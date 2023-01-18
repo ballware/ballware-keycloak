@@ -180,6 +180,31 @@ public class UserRestProvider implements RealmResourceProvider {
                 existingUser.setAttribute(key, value);
             });
 
+            if (user.getUserRoles() != null) {
+                List<String> newRoles = user.getUserRoles().stream().map(r -> r.getRoleId()).collect(Collectors.toList());
+
+                List<String> existingRoles = existingUser.getRealmRoleMappingsStream()
+                    .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
+                    .map(r -> r.getId())
+                    .collect(Collectors.toList());
+
+                existingRoles.forEach(role -> {
+                    if (!newRoles.contains(role)) {
+                        RoleModel exististingRole = session.roles().getRoleById(session.getContext().getRealm(), role);
+                    
+                        existingUser.deleteRoleMapping(exististingRole);
+                    }
+                });
+
+                newRoles.forEach(role -> {
+                    RoleModel newRole = session.roles().getRoleById(session.getContext().getRealm(), role);
+                    
+                    if (newRole != null && !existingRoles.contains(newRole.getId())) {
+                        existingUser.grantRole(newRole);
+                    }
+                });
+            } 
+
             return Cors.add(request, Response
                 .ok(this.toUserDetail(existingUser,
                     existingUser.getRealmRoleMappingsStream()
@@ -195,6 +220,13 @@ public class UserRestProvider implements RealmResourceProvider {
             foldedClaims.forEach((key, value) -> {
                 newUser.setAttribute(key, value);
             });
+
+            if (user.getUserRoles() != null) {
+                user.getUserRoles().forEach(role -> {
+                    RoleModel newRole = session.roles().getRoleById(session.getContext().getRealm(), role.getRoleId());
+                    newUser.grantRole(newRole);
+                });
+            } 
 
             return Cors.add(request, Response
                 .ok(this.toUserDetail(newUser,
@@ -215,7 +247,7 @@ public class UserRestProvider implements RealmResourceProvider {
     @Produces(MediaType.APPLICATION_JSON)
     @NoCache
     @Encoded
-    public Response removeRole(
+    public Response removeUser(
         @PathParam("id") String id) {
 
         String tenant = assertUserHasTenant();
