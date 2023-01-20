@@ -36,7 +36,7 @@
     </#if>
     <style>
         .dx-toolbar {
-            background-color: #3f51b5;
+            background-color: #0d6efd;
             color: #fff;
             padding: 0px 10px;
             box-shadow: 0 2px 4px -1px rgb(0 0 0 / 20%), 0 4px 5px 0 rgb(0 0 0 / 14%), 0 1px 10px 0 rgb(0 0 0 / 12%);

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.keycloak.models.ClientSessionContext;
@@ -28,17 +30,22 @@ public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAc
      */
     private static final List<ProviderConfigProperty> configProperties = new ArrayList<>();
 
+    public static final String ROLE_ATTRIBUTE = "role.attribute";
+    public static final String INSERT_USER_ATTRIBUTE_VALUES = "insertuserattributevalues";
+
     /*
      * The ID of the token mapper. Is public, because we need this id in our data-setup project to
      * configure the protocol mapper in keycloak.
      */
     public static final String PROVIDER_ID = "ballware-token-mapper";
 
+    private static final Pattern USER_ATTRIBUTE_PATTERN = Pattern.compile("\\{\\{([a-zA-Z0-9-_]*)\\}\\}");
+
     static {
         ProviderConfigProperty attributeNameProperty = new ProviderConfigProperty();
-        attributeNameProperty.setName(ProtocolMapperUtils.USER_ATTRIBUTE);
-        attributeNameProperty.setLabel(ProtocolMapperUtils.USER_MODEL_ATTRIBUTE_LABEL);
-        attributeNameProperty.setHelpText(ProtocolMapperUtils.USER_MODEL_ATTRIBUTE_HELP_TEXT);
+        attributeNameProperty.setName(ROLE_ATTRIBUTE);
+        attributeNameProperty.setLabel("Role attribute");
+        attributeNameProperty.setHelpText("Name of realm role attribute to map to token");
         attributeNameProperty.setType(ProviderConfigProperty.STRING_TYPE);
         configProperties.add(attributeNameProperty);
 
@@ -61,6 +68,13 @@ public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAc
         multivalueProperty.setHelpText(ProtocolMapperUtils.MULTIVALUED_HELP_TEXT);
         multivalueProperty.setType(ProviderConfigProperty.BOOLEAN_TYPE);
         configProperties.add(multivalueProperty);
+
+        ProviderConfigProperty insertUserAttributesValuesProperty = new ProviderConfigProperty();
+        multivalueProperty.setName(INSERT_USER_ATTRIBUTE_VALUES);
+        multivalueProperty.setLabel("Insert user attribute values");
+        multivalueProperty.setHelpText("Insert user attribute values in brackets {{userattribute}}");
+        multivalueProperty.setType(ProviderConfigProperty.BOOLEAN_TYPE);
+        configProperties.add(insertUserAttributesValuesProperty);
     }
 
     @Override
@@ -95,7 +109,8 @@ public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAc
                             final KeycloakSession keycloakSession,
                             final ClientSessionContext clientSessionCtx) {
 
-        String attributeName = mappingModel.getConfig().get(ProtocolMapperUtils.USER_ATTRIBUTE);
+        String attributeName = mappingModel.getConfig().get(ROLE_ATTRIBUTE);
+        Boolean insertUserAttributeValues = "true".equals(mappingModel.getConfig().get(INSERT_USER_ATTRIBUTE_VALUES));
                                 
         // adds our data to the token. Uses the parameters like the claim name which were set by the user
         // when this protocol mapper was configured in keycloak. Note that the parameters which can
@@ -106,7 +121,7 @@ public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAc
 
         Optional<String> tenant = userSession.getUser().getAttributeStream("tenant").findFirst();
 
-        if (tenant.isPresent()) {
+        if (access != null && tenant.isPresent()) {
             List<String> claimValues = new ArrayList<String>();
 
             Set<String> roleNames = access.getRoles().stream().collect(Collectors.toSet());
@@ -116,7 +131,23 @@ public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAc
 
                 if (roleModel.getAttributeStream("tenant").findFirst().equals(tenant)) {
                     roleModel.getAttributes().forEach((key, values) -> {
-                        if (key.equals(attributeName)) {
+                        if (key.equals(attributeName)) {  
+                            if (insertUserAttributeValues) {
+                                values = values.stream().map(v -> {                                    
+                                    Matcher matcher;
+
+                                    while ((matcher = USER_ATTRIBUTE_PATTERN.matcher(v)).find()) {
+                                        
+                                        String userAttributeName = matcher.group(1);                                        
+                                        String userAttributeValue = userSession.getUser().getFirstAttribute(userAttributeName);
+
+                                        v = matcher.replaceFirst(userAttributeValue);                                 
+                                    }
+                                    
+                                    return v;
+                                }).collect(Collectors.toList());
+                            }   
+
                             claimValues.addAll(values);
                         }
                     });
