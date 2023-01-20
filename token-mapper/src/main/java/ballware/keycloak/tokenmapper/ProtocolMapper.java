@@ -70,10 +70,10 @@ public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAc
         configProperties.add(multivalueProperty);
 
         ProviderConfigProperty insertUserAttributesValuesProperty = new ProviderConfigProperty();
-        multivalueProperty.setName(INSERT_USER_ATTRIBUTE_VALUES);
-        multivalueProperty.setLabel("Insert user attribute values");
-        multivalueProperty.setHelpText("Insert user attribute values in brackets {{userattribute}}");
-        multivalueProperty.setType(ProviderConfigProperty.BOOLEAN_TYPE);
+        insertUserAttributesValuesProperty.setName(INSERT_USER_ATTRIBUTE_VALUES);
+        insertUserAttributesValuesProperty.setLabel("Insert user attribute values");
+        insertUserAttributesValuesProperty.setHelpText("Insert user attribute values in brackets {{userattribute}}");
+        insertUserAttributesValuesProperty.setType(ProviderConfigProperty.BOOLEAN_TYPE);
         configProperties.add(insertUserAttributesValuesProperty);
     }
 
