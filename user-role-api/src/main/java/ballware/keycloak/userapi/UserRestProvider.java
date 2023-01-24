@@ -85,7 +85,7 @@ public class UserRestProvider implements RealmResourceProvider {
                         .collect(Collectors.toList())
                 ))
                 .collect(Collectors.toList()))
-            ).auth().allowedOrigins(this.auth.getToken()).build();
+            ).auth().allowAllOrigins().build();
     }
 
     @GET
@@ -111,12 +111,12 @@ public class UserRestProvider implements RealmResourceProvider {
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
                 ))
-            ).auth().allowedOrigins(this.auth.getToken()).build();    
+            ).auth().allowAllOrigins().build();    
         }
 
         return Cors.add(request, Response
             .status(Status.NOT_FOUND)            
-        ).auth().allowedOrigins(this.auth.getToken()).build();
+        ).auth().allowAllOrigins().build();
     }
 
 
@@ -134,7 +134,7 @@ public class UserRestProvider implements RealmResourceProvider {
 
         return Cors.add(request, Response
             .ok(new User(UUID.randomUUID().toString(), "", "", "", "", null, null, null))
-            ).auth().allowedOrigins(this.auth.getToken()).build();
+            ).auth().allowAllOrigins().build();
     }
 
     @POST
@@ -211,7 +211,7 @@ public class UserRestProvider implements RealmResourceProvider {
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
                 ))
-            ).auth().allowedOrigins(this.auth.getToken()).build();    
+            ).auth().allowAllOrigins().build();    
         } else if (existingUser == null) {
             assertUserHasClaim("right", "identity.user.add");
 
@@ -238,12 +238,12 @@ public class UserRestProvider implements RealmResourceProvider {
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
                 ))
-            ).auth().allowedOrigins(this.auth.getToken()).build();   
+            ).auth().allowAllOrigins().build();   
         }
 
         return Cors.add(request, Response
             .status(Status.NOT_FOUND)            
-        ).auth().allowedOrigins(this.auth.getToken()).build();
+        ).auth().allowAllOrigins().allowAllOrigins().build();
     }
 
     @DELETE
@@ -271,12 +271,12 @@ public class UserRestProvider implements RealmResourceProvider {
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
                 ))
-            ).auth().allowedOrigins(this.auth.getToken()).build();    
+            ).auth().allowAllOrigins().build();    
         }
 
         return Cors.add(request, Response
             .status(Status.NOT_FOUND)            
-        ).auth().allowedOrigins(this.auth.getToken()).build();
+        ).auth().allowAllOrigins().build();
     }
 
     @GET
@@ -295,7 +295,7 @@ public class UserRestProvider implements RealmResourceProvider {
                 .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                 .map(e -> new UserSelectlistEntry(e.getId(), e.getUsername()))
                 .collect(Collectors.toList()))
-            ).auth().allowedOrigins(this.auth.getToken()).build();
+            ).auth().allowAllOrigins().build();
     }
 
     @GET
@@ -316,12 +316,12 @@ public class UserRestProvider implements RealmResourceProvider {
         if (user != null && user.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
             return Cors.add(request, Response
                 .ok(new UserSelectlistEntry(user.getId(), user.getUsername()))
-            ).auth().allowedOrigins(this.auth.getToken()).build();    
+            ).auth().allowAllOrigins().build();    
         }
 
         return Cors.add(request, Response
             .status(Status.NOT_FOUND)            
-        ).auth().allowedOrigins(this.auth.getToken()).build();
+        ).auth().allowAllOrigins().build();
     }
 
     private void assertAuthenticatedUser() {

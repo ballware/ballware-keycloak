@@ -85,7 +85,7 @@ public class RoleRestProvider implements RealmResourceProvider {
                         .collect(Collectors.toList())
                 ))
                 .collect(Collectors.toList()))
-            ).auth().allowedOrigins(this.auth.getToken()).build();
+            ).auth().allowAllOrigins().build();
     }
 
     @GET
@@ -111,12 +111,12 @@ public class RoleRestProvider implements RealmResourceProvider {
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
                 ))
-            ).auth().allowedOrigins(this.auth.getToken()).build();    
+            ).auth().allowAllOrigins().build();    
         }
 
         return Cors.add(request, Response
             .status(Status.NOT_FOUND)            
-        ).auth().allowedOrigins(this.auth.getToken()).build();
+        ).auth().allowAllOrigins().build();
     }
 
 
@@ -134,7 +134,7 @@ public class RoleRestProvider implements RealmResourceProvider {
 
         return Cors.add(request, Response
             .ok(new Role(UUID.randomUUID().toString(), "", null, null, null))
-            ).auth().allowedOrigins(this.auth.getToken()).build();
+            ).auth().allowAllOrigins().build();
     }
 
     @POST
@@ -210,7 +210,7 @@ public class RoleRestProvider implements RealmResourceProvider {
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
                 ))
-            ).auth().allowedOrigins(this.auth.getToken()).build();    
+            ).auth().allowAllOrigins().build();    
         } else if (existingRole == null) {
             assertUserHasClaim("right", "identity.role.add");
 
@@ -233,12 +233,12 @@ public class RoleRestProvider implements RealmResourceProvider {
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
                 ))
-            ).auth().allowedOrigins(this.auth.getToken()).build();   
+            ).auth().allowAllOrigins().build();   
         }
 
         return Cors.add(request, Response
             .status(Status.NOT_FOUND)            
-        ).auth().allowedOrigins(this.auth.getToken()).build();
+        ).auth().allowAllOrigins().build();
     }
 
     @DELETE
@@ -266,12 +266,12 @@ public class RoleRestProvider implements RealmResourceProvider {
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
                 ))
-            ).auth().allowedOrigins(this.auth.getToken()).build();    
+            ).auth().allowAllOrigins().build();    
         }
 
         return Cors.add(request, Response
             .status(Status.NOT_FOUND)            
-        ).auth().allowedOrigins(this.auth.getToken()).build();
+        ).auth().allowAllOrigins().build();
     }
 
     @GET
@@ -291,7 +291,7 @@ public class RoleRestProvider implements RealmResourceProvider {
                 .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                 .map(e -> new RoleSelectlistEntry(e.getId(), e.getName()))
                 .collect(Collectors.toList()))
-            ).auth().allowedOrigins(this.auth.getToken()).build();
+            ).auth().allowAllOrigins().build();
     }
 
     @GET
@@ -312,12 +312,12 @@ public class RoleRestProvider implements RealmResourceProvider {
         if (role != null && role.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
             return Cors.add(request, Response
                 .ok(new RoleSelectlistEntry(role.getId(), role.getName()))
-            ).auth().allowedOrigins(this.auth.getToken()).build();    
+            ).auth().allowAllOrigins().build();    
         }
 
         return Cors.add(request, Response
             .status(Status.NOT_FOUND)            
-        ).auth().allowedOrigins(this.auth.getToken()).build();
+        ).auth().allowAllOrigins().build();
     }
 
     private Role toRoleDetail(RoleModel rm, List<UserModel> assignedUser) {
