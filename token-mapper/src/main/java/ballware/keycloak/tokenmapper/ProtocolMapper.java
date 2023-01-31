@@ -23,6 +23,7 @@ import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.IDToken;
 import org.keycloak.utils.RoleResolveUtil;
+import org.keycloak.utils.StringUtil;
 
 public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
     /*
@@ -141,7 +142,11 @@ public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAc
                                         String userAttributeName = matcher.group(1);                                        
                                         String userAttributeValue = userSession.getUser().getFirstAttribute(userAttributeName);
 
-                                        v = matcher.replaceFirst(userAttributeValue);                                 
+                                        if (StringUtil.isNotBlank(userAttributeValue)) {
+                                            v = matcher.replaceFirst(userAttributeValue);
+                                        } else {
+                                            v = matcher.replaceFirst("undefined");
+                                        }      
                                     }
                                     
                                     return v;
