@@ -153,17 +153,13 @@ public class UserRestProvider implements RealmResourceProvider {
 
         if (user.getUserClaims() != null) {
             user.getUserClaims().forEach(cl -> {
-                if (!"tenant".equals(cl.getClaimType())) {
-                    if (!foldedClaims.containsKey(cl.getClaimType())) {
-                        foldedClaims.put(cl.getClaimType(), new ArrayList<String>());
-                    }
-
-                    foldedClaims.get(cl.getClaimType()).add(cl.getClaimValue());
+                if (!foldedClaims.containsKey(cl.getClaimType())) {
+                    foldedClaims.put(cl.getClaimType(), new ArrayList<String>());
                 }
+
+                foldedClaims.get(cl.getClaimType()).add(cl.getClaimValue());
             });
         }
-
-        foldedClaims.put("tenant", Arrays.asList(new String[] { tenant }));
         
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
