@@ -130,7 +130,7 @@ public class ProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAc
             for (String role : roleNames) {
                 RoleModel roleModel = userSession.getRealm().getRole(role);
 
-                if (roleModel.getAttributeStream("tenant").findFirst().equals(tenant)) {
+                if (roleModel.getAttributeStream("tenant").anyMatch(t -> t.equalsIgnoreCase(tenant.get()) || t.equalsIgnoreCase("*"))) {
                     roleModel.getAttributes().forEach((key, values) -> {
                         if (key.equals(attributeName)) {  
                             if (insertUserAttributeValues) {
