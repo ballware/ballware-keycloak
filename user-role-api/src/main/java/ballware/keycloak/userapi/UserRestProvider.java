@@ -1,7 +1,6 @@
 package ballware.keycloak.userapi;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +71,10 @@ public class UserRestProvider implements RealmResourceProvider {
     public Response getAllUsers(String identifier) {
         
         String tenant = assertUserHasTenant();
-        assertUserHasClaim("right", "identity.user.view");
+        
+        if (!(userHasClaim("right", "identity.user.view") || userHasClaim("right", "tenant.user.view"))) {
+            throw new ForbiddenException();
+        }
 
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
@@ -98,7 +100,10 @@ public class UserRestProvider implements RealmResourceProvider {
         @QueryParam("id") String id) {
         
         String tenant = assertUserHasTenant();
-        assertUserHasClaim("right", "identity.user.view");
+
+        if (!(userHasClaim("right", "identity.user.view") || userHasClaim("right", "tenant.user.view"))) {
+            throw new ForbiddenException();
+        }
 
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
@@ -128,7 +133,10 @@ public class UserRestProvider implements RealmResourceProvider {
     public Response getNewUser(String identifier) {
         
         assertUserHasTenant();
-        assertUserHasClaim("right", "identity.user.add");
+
+        if (!(userHasClaim("right", "identity.user.add") || userHasClaim("right", "tenant.user.add"))) {
+            throw new ForbiddenException();
+        }
         
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
@@ -167,7 +175,9 @@ public class UserRestProvider implements RealmResourceProvider {
 
         if (existingUser != null && existingUser.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
             
-            assertUserHasClaim("right", "identity.user.edit");
+            if (!(userHasClaim("right", "identity.user.edit") || userHasClaim("right", "tenant.user.edit"))) {
+                throw new ForbiddenException();
+            }
 
             existingUser.setFirstName(user.getFirstName());
             existingUser.setLastName(user.getLastName());
@@ -209,7 +219,10 @@ public class UserRestProvider implements RealmResourceProvider {
                 ))
             ).auth().allowAllOrigins().build();    
         } else if (existingUser == null) {
-            assertUserHasClaim("right", "identity.user.add");
+
+            if (!(userHasClaim("right", "identity.user.add") || userHasClaim("right", "tenant.user.add"))) {
+                throw new ForbiddenException();
+            }
 
             UserModel newUser = session.users().addUser(session.getContext().getRealm(), user.getId(), user.getUserName(), true, true);
         
@@ -251,7 +264,10 @@ public class UserRestProvider implements RealmResourceProvider {
         @PathParam("id") String id) {
 
         String tenant = assertUserHasTenant();
-        assertUserHasClaim("right", "identity.user.delete");
+        
+        if (!(userHasClaim("right", "identity.user.delete") || userHasClaim("right", "tenant.user.delete"))) {
+            throw new ForbiddenException();
+        }
 
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
@@ -282,7 +298,10 @@ public class UserRestProvider implements RealmResourceProvider {
     @Encoded
     public Response getSelect() {
         String tenant = assertUserHasTenant();
-        assertUserHasClaim("right", "identity.user.view");
+
+        if (!(userHasClaim("right", "identity.user.view") || userHasClaim("right", "tenant.user.view"))) {
+            throw new ForbiddenException();
+        }
 
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
@@ -303,7 +322,10 @@ public class UserRestProvider implements RealmResourceProvider {
         @PathParam("id") String id) {
         
         String tenant = assertUserHasTenant();
-        assertUserHasClaim("right", "identity.user.view");
+
+        if (!(userHasClaim("right", "identity.user.view") || userHasClaim("right", "tenant.user.view"))) {
+            throw new ForbiddenException();
+        }
 
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
@@ -339,7 +361,7 @@ public class UserRestProvider implements RealmResourceProvider {
         return tenant;
     }
 
-    private void assertUserHasClaim(String claimType, String claimValue) {
+    private boolean userHasClaim(String claimType, String claimValue) {
 
         assert StringUtils.isNotBlank(claimType);
         assert StringUtils.isNotBlank(claimValue); 
@@ -351,9 +373,7 @@ public class UserRestProvider implements RealmResourceProvider {
         boolean isList = claimValues instanceof List<?>;
         boolean hasClaim = isList ? ((List<?>)claimValues).contains(claimValue) : claimValue.equals(claimValues);
 
-        if (!hasClaim) {
-            throw new ForbiddenException();
-        }
+        return hasClaim;
     }
 
     private User toUserDetail(UserModel um, List<RoleModel> assignedRoles) {

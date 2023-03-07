@@ -72,7 +72,10 @@ public class RoleRestProvider implements RealmResourceProvider {
     public Response getAllRoles(String identifier) {
         
         String tenant = assertUserHasTenant();
-        assertUserHasClaim("right", "identity.role.view");
+
+        if (!(userHasClaim("right", "identity.role.view") || userHasClaim("right", "tenant.role.view"))) {
+            throw new ForbiddenException();
+        }
 
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
@@ -98,7 +101,10 @@ public class RoleRestProvider implements RealmResourceProvider {
         @QueryParam("id") String id) {
         
         String tenant = assertUserHasTenant();
-        assertUserHasClaim("right", "identity.role.view");
+        
+        if (!(userHasClaim("right", "identity.role.view") || userHasClaim("right", "tenant.role.view"))) {
+            throw new ForbiddenException();
+        }
 
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
@@ -128,7 +134,10 @@ public class RoleRestProvider implements RealmResourceProvider {
     public Response getNewRole(String identifier) {
         
         assertUserHasTenant();
-        assertUserHasClaim("right", "identity.role.add");
+        
+        if (!(userHasClaim("right", "identity.role.add") || userHasClaim("right", "tenant.role.add"))) {
+            throw new ForbiddenException();
+        }
         
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
@@ -171,7 +180,9 @@ public class RoleRestProvider implements RealmResourceProvider {
 
         if (existingRole != null && existingRole.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
             
-            assertUserHasClaim("right", "identity.role.edit");
+            if (!(userHasClaim("right", "identity.role.edit") || userHasClaim("right", "tenant.role.edit"))) {
+                throw new ForbiddenException();
+            }
 
             existingRole.setName(role.getDisplayName());
 
@@ -212,7 +223,9 @@ public class RoleRestProvider implements RealmResourceProvider {
                 ))
             ).auth().allowAllOrigins().build();    
         } else if (existingRole == null) {
-            assertUserHasClaim("right", "identity.role.add");
+            if (!(userHasClaim("right", "identity.role.add") || userHasClaim("right", "tenant.role.add"))) {
+                throw new ForbiddenException();
+            }
 
             RoleModel newRole = session.roles().addRealmRole(session.getContext().getRealm(), role.getDisplayName());
         
@@ -250,7 +263,10 @@ public class RoleRestProvider implements RealmResourceProvider {
         @PathParam("id") String id) {
 
         String tenant = assertUserHasTenant();
-        assertUserHasClaim("right", "identity.role.delete");
+
+        if (!(userHasClaim("right", "identity.role.delete") || userHasClaim("right", "tenant.role.delete"))) {
+            throw new ForbiddenException();
+        }
 
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
@@ -282,7 +298,10 @@ public class RoleRestProvider implements RealmResourceProvider {
     public Response getSelect() {
         
         String tenant = assertUserHasTenant();
-        assertUserHasClaim("right", "identity.role.view");
+
+        if (!(userHasClaim("right", "identity.role.view") || userHasClaim("right", "tenant.role.view"))) {
+            throw new ForbiddenException();
+        }
 
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
@@ -303,7 +322,10 @@ public class RoleRestProvider implements RealmResourceProvider {
         @PathParam("id") String id) {
         
         String tenant = assertUserHasTenant();
-        assertUserHasClaim("right", "identity.role.view");
+        
+        if (!(userHasClaim("right", "identity.role.view") || userHasClaim("right", "tenant.role.view"))) {
+            throw new ForbiddenException();
+        }
 
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
@@ -362,7 +384,7 @@ public class RoleRestProvider implements RealmResourceProvider {
         return tenant;
     }
 
-    private void assertUserHasClaim(String claimType, String claimValue) {
+    private boolean userHasClaim(String claimType, String claimValue) {
 
         assert StringUtils.isNotBlank(claimType);
         assert StringUtils.isNotBlank(claimValue); 
@@ -374,8 +396,6 @@ public class RoleRestProvider implements RealmResourceProvider {
         boolean isList = claimValues instanceof List<?>;
         boolean hasClaim = isList ? ((List<?>)claimValues).contains(claimValue) : claimValue.equals(claimValues);
 
-        if (!hasClaim) {
-            throw new ForbiddenException();
-        }
+        return hasClaim;
     }
 }
