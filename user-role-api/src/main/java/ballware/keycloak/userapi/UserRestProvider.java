@@ -342,10 +342,47 @@ public class UserRestProvider implements RealmResourceProvider {
         ).auth().allowAllOrigins().build();
     }
 
-    private void assertAuthenticatedUser() {
+    @POST
+    @Path("tenant")
+    @NoCache
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Encoded
+    public Response gotoTenant(
+        @QueryParam("tenant") String targetTenant) {
+
+        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+
+        String tenant = assertUserHasTenant();
+        String user = assertAuthenticatedUser();
+
+        UserModel existingUser = session.users().getUserById(session.getContext().getRealm(), user);
+
+        if (existingUser != null 
+            && existingUser.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)
+            && existingUser.getAttributes().getOrDefault("allowed_tenant", new ArrayList<String>()).contains(targetTenant)) {
+            
+            existingUser.setAttribute("tenant", List.of(targetTenant));
+
+            return Cors.add(request, 
+                Response.ok(this.toUserDetail(existingUser,
+                    existingUser.getRealmRoleMappingsStream()
+                        .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(targetTenant))
+                        .collect(Collectors.toList())
+                ))
+            ).auth().allowAllOrigins().build();    
+        } 
+        
+        return Cors.add(request, Response
+            .status(Status.NOT_FOUND)            
+        ).auth().allowAllOrigins().allowAllOrigins().build();
+    }
+
+    private String assertAuthenticatedUser() {
         if (this.auth == null || this.auth.getToken() == null) {
             throw new NotAuthorizedException("Bearer");
         }
+
+        return this.auth.getToken().getSubject();
     }
 
     private String assertUserHasTenant() {
