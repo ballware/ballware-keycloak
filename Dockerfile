@@ -18,6 +18,7 @@ FROM quay.io/keycloak/keycloak:20.0 as builder
 COPY --from=themebuilder  /home/app/target/*.jar /opt/keycloak/providers
 COPY --from=mapperbuilder  /home/app/target/*.jar /opt/keycloak/providers
 COPY --from=apibuilder  /home/app/target/*.jar /opt/keycloak/providers
+COPY ./import /opt/keycloak/data/import
 
 # Enable health and metrics support
 ENV KC_HEALTH_ENABLED=true
