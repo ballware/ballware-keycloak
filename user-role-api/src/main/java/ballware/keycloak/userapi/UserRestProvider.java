@@ -141,7 +141,7 @@ public class UserRestProvider implements RealmResourceProvider {
         HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
 
         return Cors.add(request, Response
-            .ok(new User(UUID.randomUUID().toString(), "", "", "", "", null, null, null))
+            .ok(new User(UUID.randomUUID().toString(), "", "", "", "", false, null, null, null))
             ).auth().allowAllOrigins().build();
     }
 
@@ -181,6 +181,7 @@ public class UserRestProvider implements RealmResourceProvider {
 
             existingUser.setFirstName(user.getFirstName());
             existingUser.setLastName(user.getLastName());
+            existingUser.setEnabled(user.getEnabled());
 
             foldedClaims.forEach((key, value) -> {
                 existingUser.setAttribute(key, value);
@@ -228,7 +229,7 @@ public class UserRestProvider implements RealmResourceProvider {
         
             newUser.setEmail(user.getEmail());
             newUser.setEmailVerified(true);
-            newUser.setEnabled(true);
+            newUser.setEnabled(user.getEnabled());
 
             foldedClaims.forEach((key, value) -> {
                 newUser.setAttribute(key, value);
@@ -427,6 +428,6 @@ public class UserRestProvider implements RealmResourceProvider {
 
         String roleSummary = assignedRoles.stream().map(role -> role.getName()).collect(Collectors.joining(", "));
 
-        return new User(um.getId(), um.getUsername(), um.getEmail(), um.getFirstName(), um.getLastName(), claims, roles, roleSummary);
+        return new User(um.getId(), um.getUsername(), um.getEmail(), um.getFirstName(), um.getLastName(), um.isEnabled(), claims, roles, roleSummary);
     }
 }

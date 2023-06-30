@@ -13,6 +13,7 @@ public class User {
     private String email;
     private String firstName;
     private String lastName;
+    private boolean enabled;
 
     private List<UserClaim> claims;
     private List<UserRole> roles;
@@ -22,12 +23,13 @@ public class User {
 
     }
 
-    public User(String id, String userName, String email, String firstName, String lastName, List<UserClaim> claims, List<UserRole> roles, String roleSummary) {
+    public User(String id, String userName, String email, String firstName, String lastName, boolean enabled, List<UserClaim> claims, List<UserRole> roles, String roleSummary) {
         this.id = id;
         this.userName = userName;
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.enabled = enabled;
         this.claims = claims;
         this.roles = roles;
         this.roleSummary = roleSummary;
@@ -71,6 +73,14 @@ public class User {
 
     public void setLastName(String value) {
         this.lastName = value;
+    }
+
+    public boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean value) {
+        this.enabled = value;
     }
 
     public String getRoleSummary() {
