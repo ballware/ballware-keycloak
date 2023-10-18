@@ -41,7 +41,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <nodeVersion>v19.3.0</nodeVersion>
+                    <nodeVersion>v18.18.2</nodeVersion>
                     <installDirectory>../</installDirectory>
                 </configuration>
             </plugin>

@@ -7,24 +7,24 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.Encoded;
-import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.Encoded;
+import jakarta.ws.rs.ForbiddenException;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotAuthorizedException;
+import jakarta.ws.rs.OPTIONS;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.resteasy.annotations.cache.NoCache;
-import org.jboss.resteasy.spi.HttpRequest;
+import org.keycloak.http.HttpRequest;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserModel;
@@ -59,7 +59,7 @@ public class UserRestProvider implements RealmResourceProvider {
     @OPTIONS
 	@Path("{any:.*}")
 	public Response preflight() {
-		HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+		HttpRequest request = session.getContext().getHttpRequest();
 		return Cors.add(request, Response.ok()).auth().allowedMethods("OPTIONS", "GET", "POST", "DELETE").preflight().build();
 	}
 
@@ -76,7 +76,7 @@ public class UserRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+        HttpRequest request = session.getContext().getHttpRequest();
 
         return Cors.add(request, Response
             .ok(session.users().searchForUserStream(session.getContext().getRealm(), "")
@@ -105,7 +105,7 @@ public class UserRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+        HttpRequest request = session.getContext().getHttpRequest();
 
         UserModel user = session.users().getUserById(session.getContext().getRealm(), id);
 
@@ -138,7 +138,7 @@ public class UserRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
         
-        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+        HttpRequest request = session.getContext().getHttpRequest();
 
         return Cors.add(request, Response
             .ok(new User(UUID.randomUUID().toString(), "", "", "", "", false, null, null, null))
@@ -169,7 +169,7 @@ public class UserRestProvider implements RealmResourceProvider {
             });
         }
         
-        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+        HttpRequest request = session.getContext().getHttpRequest();
 
         UserModel existingUser = session.users().getUserById(session.getContext().getRealm(), user.getId());
 
@@ -270,7 +270,7 @@ public class UserRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+        HttpRequest request = session.getContext().getHttpRequest();
 
         UserModel existingUser = session.users().getUserById(session.getContext().getRealm(), id);
 
@@ -304,7 +304,7 @@ public class UserRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+        HttpRequest request = session.getContext().getHttpRequest();
 
         return Cors.add(request, Response
             .ok(session.users().searchForUserStream(session.getContext().getRealm(), "")
@@ -328,7 +328,7 @@ public class UserRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+        HttpRequest request = session.getContext().getHttpRequest();
 
         UserModel user = session.users().getUserById(session.getContext().getRealm(), id);
 
@@ -351,7 +351,7 @@ public class UserRestProvider implements RealmResourceProvider {
     public Response gotoTenant(
         @QueryParam("tenant") String targetTenant) {
 
-        HttpRequest request = session.getContext().getContextObject(HttpRequest.class);
+        HttpRequest request = session.getContext().getHttpRequest();
 
         String tenant = assertUserHasTenant();
         String user = assertAuthenticatedUser();
