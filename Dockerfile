@@ -21,7 +21,7 @@ COPY user-role-api/src /home/app/src
 COPY user-role-api/pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean package
 
-FROM quay.io/keycloak/keycloak:23.0 as builder
+FROM quay.io/keycloak/keycloak:24.0 as builder
 COPY --from=themebuilder  /home/app/target/*.jar /opt/keycloak/providers
 COPY --from=mapperbuilder  /home/app/target/*.jar /opt/keycloak/providers
 COPY --from=apibuilder  /home/app/target/*.jar /opt/keycloak/providers
@@ -39,7 +39,7 @@ WORKDIR /opt/keycloak
 # RUN keytool -genkeypair -storepass password -storetype PKCS12 -keyalg RSA -keysize 2048 -dname "CN=server" -alias server -ext "SAN:c=DNS:localhost,IP:127.0.0.1" -keystore conf/server.keystore
 RUN /opt/keycloak/bin/kc.sh build --transaction-xa-enabled=false
 
-FROM quay.io/keycloak/keycloak:23.0
+FROM quay.io/keycloak/keycloak:24.0
 COPY --from=ubi-micro-build /mnt/rootfs /
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
