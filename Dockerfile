@@ -6,22 +6,22 @@ RUN dnf install --installroot /mnt/rootfs tar gzip git --releasever 9 --setopt i
     rpm --root /mnt/rootfs -e --nodeps setup
 
 
-FROM maven:3.9-eclipse-temurin-21 as themebuilder
+FROM maven:3.9-eclipse-temurin-21 AS themebuilder
 COPY ballware-theme/src /home/app/src
 COPY ballware-theme/pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean package
 
-FROM maven:3.9-eclipse-temurin-21 as mapperbuilder
+FROM maven:3.9-eclipse-temurin-21 AS mapperbuilder
 COPY token-mapper/src /home/app/src
 COPY token-mapper/pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean package
 
-FROM maven:3.9-eclipse-temurin-21 as apibuilder
+FROM maven:3.9-eclipse-temurin-21 AS apibuilder
 COPY user-role-api/src /home/app/src
 COPY user-role-api/pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean package
 
-FROM quay.io/keycloak/keycloak:26.6 as builder
+FROM quay.io/keycloak/keycloak:26.6 AS builder
 COPY --from=themebuilder  /home/app/target/*.jar /opt/keycloak/providers
 COPY --from=mapperbuilder  /home/app/target/*.jar /opt/keycloak/providers
 COPY --from=apibuilder  /home/app/target/*.jar /opt/keycloak/providers
