@@ -36,7 +36,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.ext.Provider;
 
+@Provider
 public class RoleRestProvider implements RealmResourceProvider {
     private final KeycloakSession session;
     private final AuthResult auth;
@@ -64,7 +66,7 @@ public class RoleRestProvider implements RealmResourceProvider {
     @Path("all")
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
-    public Response getAllRoles(String identifier) {
+    public Response getAllRoles(@QueryParam("identifier") String identifier) {
         
         String tenant = assertUserHasTenant();
 
@@ -116,7 +118,7 @@ public class RoleRestProvider implements RealmResourceProvider {
     @Path("new")
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
-    public Response getNewRole(String identifier) {
+    public Response getNewRole(@QueryParam("identifier") String identifier) {
         
         assertUserHasTenant();
         

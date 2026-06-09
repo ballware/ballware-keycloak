@@ -21,6 +21,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.ext.Provider;
 
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.models.KeycloakSession;
@@ -37,6 +38,7 @@ import ballware.keycloak.userapi.model.UserClaim;
 import ballware.keycloak.userapi.model.UserRole;
 import ballware.keycloak.userapi.model.UserSelectlistEntry;
 
+@Provider
 public class UserRestProvider implements RealmResourceProvider {
     private final KeycloakSession session;
     private final AuthResult auth;
@@ -64,7 +66,7 @@ public class UserRestProvider implements RealmResourceProvider {
     @Path("all")
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
-    public Response getAllUsers(String identifier) {
+    public Response getAllUsers(@QueryParam("identifier") String identifier) {
         
         String tenant = assertUserHasTenant();
         
@@ -73,7 +75,7 @@ public class UserRestProvider implements RealmResourceProvider {
         }
 
         return Cors.builder().auth().allowAllOrigins().add(Response
-            .ok(session.users().searchForUserStream(session.getContext().getRealm(), "")
+            .ok(session.users().searchForUserStream(session.getContext().getRealm(), Map.of(), null, null)
                 .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                 .map(e -> toUserDetail(e, 
                     e.getRealmRoleMappingsStream()
@@ -116,7 +118,7 @@ public class UserRestProvider implements RealmResourceProvider {
     @Path("new")
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
-    public Response getNewUser(String identifier) {
+    public Response getNewUser(@QueryParam("identifier") String identifier) {
         
         assertUserHasTenant();
 
@@ -278,7 +280,7 @@ public class UserRestProvider implements RealmResourceProvider {
         }
 
         return Cors.builder().auth().allowAllOrigins().add(Response
-            .ok(session.users().searchForUserStream(session.getContext().getRealm(), "")
+            .ok(session.users().searchForUserStream(session.getContext().getRealm(), Map.of(), null, null)
                 .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                 .map(e -> new UserSelectlistEntry(e.getId(), e.getUsername()))
                 .collect(Collectors.toList())));
