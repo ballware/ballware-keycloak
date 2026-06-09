@@ -6,22 +6,22 @@ RUN dnf install --installroot /mnt/rootfs tar gzip git --releasever 9 --setopt i
     rpm --root /mnt/rootfs -e --nodeps setup
 
 
-FROM maven:3-openjdk-18 as themebuilder
+FROM maven:3.9-eclipse-temurin-21 as themebuilder
 COPY ballware-theme/src /home/app/src
 COPY ballware-theme/pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean package
 
-FROM maven:3-openjdk-18 as mapperbuilder
+FROM maven:3.9-eclipse-temurin-21 as mapperbuilder
 COPY token-mapper/src /home/app/src
 COPY token-mapper/pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean package
 
-FROM maven:3-openjdk-18 as apibuilder
+FROM maven:3.9-eclipse-temurin-21 as apibuilder
 COPY user-role-api/src /home/app/src
 COPY user-role-api/pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean package
 
-FROM quay.io/keycloak/keycloak:24.0 as builder
+FROM quay.io/keycloak/keycloak:26.6 as builder
 COPY --from=themebuilder  /home/app/target/*.jar /opt/keycloak/providers
 COPY --from=mapperbuilder  /home/app/target/*.jar /opt/keycloak/providers
 COPY --from=apibuilder  /home/app/target/*.jar /opt/keycloak/providers
@@ -39,7 +39,7 @@ WORKDIR /opt/keycloak
 # RUN keytool -genkeypair -storepass password -storetype PKCS12 -keyalg RSA -keysize 2048 -dname "CN=server" -alias server -ext "SAN:c=DNS:localhost,IP:127.0.0.1" -keystore conf/server.keystore
 RUN /opt/keycloak/bin/kc.sh build --transaction-xa-enabled=false
 
-FROM quay.io/keycloak/keycloak:24.0
+FROM quay.io/keycloak/keycloak:26.6
 COPY --from=ubi-micro-build /mnt/rootfs /
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 

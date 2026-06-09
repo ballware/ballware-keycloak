@@ -23,8 +23,6 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jboss.resteasy.annotations.cache.NoCache;
-import org.keycloak.http.HttpRequest;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserModel;
@@ -59,13 +57,11 @@ public class UserRestProvider implements RealmResourceProvider {
     @OPTIONS
 	@Path("{any:.*}")
 	public Response preflight() {
-		HttpRequest request = session.getContext().getHttpRequest();
-		return Cors.add(request, Response.ok()).auth().allowedMethods("OPTIONS", "GET", "POST", "DELETE").preflight().build();
+		return Cors.builder().allowedMethods("OPTIONS", "GET", "POST", "DELETE").preflight().add(Response.ok());
 	}
 
     @GET
     @Path("all")
-    @NoCache
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
     public Response getAllUsers(String identifier) {
@@ -76,9 +72,7 @@ public class UserRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getHttpRequest();
-
-        return Cors.add(request, Response
+        return Cors.builder().auth().allowAllOrigins().add(Response
             .ok(session.users().searchForUserStream(session.getContext().getRealm(), "")
                 .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                 .map(e -> toUserDetail(e, 
@@ -86,13 +80,11 @@ public class UserRestProvider implements RealmResourceProvider {
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
                 ))
-                .collect(Collectors.toList()))
-            ).auth().allowAllOrigins().build();
+                .collect(Collectors.toList())));
     }
 
     @GET
     @Path("byId")
-    @NoCache
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
     public Response getUserById(
@@ -105,29 +97,23 @@ public class UserRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getHttpRequest();
-
         UserModel user = session.users().getUserById(session.getContext().getRealm(), id);
 
         if (user != null && user.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
-            return Cors.add(request, Response
+            return Cors.builder().auth().allowAllOrigins().add(Response
                 .ok(this.toUserDetail(user,                
                     user.getRealmRoleMappingsStream()
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
-                ))
-            ).auth().allowAllOrigins().build();    
+                )));    
         }
 
-        return Cors.add(request, Response
-            .status(Status.NOT_FOUND)            
-        ).auth().allowAllOrigins().build();
+        return Cors.builder().auth().allowAllOrigins().add(Response
+            .status(Status.NOT_FOUND));
     }
-
 
     @GET
     @Path("new")
-    @NoCache
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
     public Response getNewUser(String identifier) {
@@ -138,16 +124,13 @@ public class UserRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
         
-        HttpRequest request = session.getContext().getHttpRequest();
 
-        return Cors.add(request, Response
-            .ok(new User(UUID.randomUUID().toString(), "", "", "", "", false, null, null, null))
-            ).auth().allowAllOrigins().build();
+        return Cors.builder().auth().allowAllOrigins().add(Response
+            .ok(new User(UUID.randomUUID().toString(), "", "", "", "", false, null, null, null)));
     }
 
     @POST
     @Path("save")
-    @NoCache
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Encoded
@@ -169,7 +152,6 @@ public class UserRestProvider implements RealmResourceProvider {
             });
         }
         
-        HttpRequest request = session.getContext().getHttpRequest();
 
         UserModel existingUser = session.users().getUserById(session.getContext().getRealm(), user.getId());
 
@@ -212,13 +194,12 @@ public class UserRestProvider implements RealmResourceProvider {
                 });
             } 
 
-            return Cors.add(request, Response
+            return Cors.builder().auth().allowAllOrigins().add(Response
                 .ok(this.toUserDetail(existingUser,
                     existingUser.getRealmRoleMappingsStream()
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
-                ))
-            ).auth().allowAllOrigins().build();    
+                )));    
         } else if (existingUser == null) {
 
             if (!(userHasClaim("right", "identity.user.add") || userHasClaim("right", "tenant.user.add"))) {
@@ -242,24 +223,21 @@ public class UserRestProvider implements RealmResourceProvider {
                 });
             } 
 
-            return Cors.add(request, Response
+            return Cors.builder().auth().allowAllOrigins().add(Response
                 .ok(this.toUserDetail(newUser,
                     newUser.getRealmRoleMappingsStream()
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
-                ))
-            ).auth().allowAllOrigins().build();   
+                )));   
         }
 
-        return Cors.add(request, Response
-            .status(Status.NOT_FOUND)            
-        ).auth().allowAllOrigins().allowAllOrigins().build();
+        return Cors.builder().auth().allowAllOrigins().allowAllOrigins().add(Response
+            .status(Status.NOT_FOUND));
     }
 
     @DELETE
     @Path("remove/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @NoCache
     @Encoded
     public Response removeUser(
         @PathParam("id") String id) {
@@ -270,31 +248,26 @@ public class UserRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getHttpRequest();
-
         UserModel existingUser = session.users().getUserById(session.getContext().getRealm(), id);
 
         if (existingUser != null && existingUser.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
             
             session.users().removeUser(session.getContext().getRealm(), existingUser);
 
-            return Cors.add(request, Response
+            return Cors.builder().auth().allowAllOrigins().add(Response
                 .ok(this.toUserDetail(existingUser,
                     existingUser.getRealmRoleMappingsStream()
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
-                ))
-            ).auth().allowAllOrigins().build();    
+                )));    
         }
 
-        return Cors.add(request, Response
-            .status(Status.NOT_FOUND)            
-        ).auth().allowAllOrigins().build();
+        return Cors.builder().auth().allowAllOrigins().add(Response
+            .status(Status.NOT_FOUND));
     }
 
     @GET
     @Path("selectlist")
-    @NoCache
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
     public Response getSelect() {
@@ -304,19 +277,15 @@ public class UserRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getHttpRequest();
-
-        return Cors.add(request, Response
+        return Cors.builder().auth().allowAllOrigins().add(Response
             .ok(session.users().searchForUserStream(session.getContext().getRealm(), "")
                 .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                 .map(e -> new UserSelectlistEntry(e.getId(), e.getUsername()))
-                .collect(Collectors.toList()))
-            ).auth().allowAllOrigins().build();
+                .collect(Collectors.toList())));
     }
 
     @GET
     @Path("selectbyid/{id}")
-    @NoCache
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
     public Response getSelectById(
@@ -328,30 +297,23 @@ public class UserRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getHttpRequest();
-
         UserModel user = session.users().getUserById(session.getContext().getRealm(), id);
 
         if (user != null && user.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
-            return Cors.add(request, Response
-                .ok(new UserSelectlistEntry(user.getId(), user.getUsername()))
-            ).auth().allowAllOrigins().build();    
+            return Cors.builder().auth().allowAllOrigins().add(Response
+                .ok(new UserSelectlistEntry(user.getId(), user.getUsername())));    
         }
 
-        return Cors.add(request, Response
-            .status(Status.NOT_FOUND)            
-        ).auth().allowAllOrigins().build();
+        return Cors.builder().auth().allowAllOrigins().add(Response
+            .status(Status.NOT_FOUND));
     }
 
     @POST
     @Path("tenant")
-    @NoCache
     @Consumes(MediaType.APPLICATION_JSON)
     @Encoded
     public Response gotoTenant(
         @QueryParam("tenant") String targetTenant) {
-
-        HttpRequest request = session.getContext().getHttpRequest();
 
         String tenant = assertUserHasTenant();
         String user = assertAuthenticatedUser();
@@ -364,18 +326,15 @@ public class UserRestProvider implements RealmResourceProvider {
             
             existingUser.setAttribute("tenant", List.of(targetTenant));
 
-            return Cors.add(request, 
-                Response.ok(this.toUserDetail(existingUser,
+            return Cors.builder().auth().allowAllOrigins().add(Response.ok(this.toUserDetail(existingUser,
                     existingUser.getRealmRoleMappingsStream()
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(targetTenant))
                         .collect(Collectors.toList())
-                ))
-            ).auth().allowAllOrigins().build();    
+                )));    
         } 
         
-        return Cors.add(request, Response
-            .status(Status.NOT_FOUND)            
-        ).auth().allowAllOrigins().allowAllOrigins().build();
+        return Cors.builder().auth().allowAllOrigins().allowAllOrigins().add(Response
+            .status(Status.NOT_FOUND));
     }
 
     private String assertAuthenticatedUser() {

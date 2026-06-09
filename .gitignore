@@ -3,3 +3,6 @@ localhost.pem
 
 .DS_Store
 node
+
+.env
+.idea
