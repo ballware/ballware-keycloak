@@ -59,7 +59,12 @@ public class UserRestProvider implements RealmResourceProvider {
     @OPTIONS
 	@Path("{any:.*}")
 	public Response preflight() {
-		return Cors.builder().allowedMethods("OPTIONS", "GET", "POST", "DELETE").preflight().add(Response.ok());
+		return Cors.builder()
+            .allowedMethods("OPTIONS", "GET", "POST", "DELETE")
+            .exposedHeaders(Cors.AUTHORIZATION_HEADER)
+            .auth()
+            .preflight()
+            .add(Response.ok());
 	}
 
     @GET
