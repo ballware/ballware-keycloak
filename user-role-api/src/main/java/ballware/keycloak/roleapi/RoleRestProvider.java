@@ -9,8 +9,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jboss.resteasy.annotations.cache.NoCache;
-import org.keycloak.http.HttpRequest;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserModel;
@@ -38,7 +36,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.ext.Provider;
 
+@Provider
 public class RoleRestProvider implements RealmResourceProvider {
     private final KeycloakSession session;
     private final AuthResult auth;
@@ -59,16 +59,19 @@ public class RoleRestProvider implements RealmResourceProvider {
     @OPTIONS
 	@Path("{any:.*}")
 	public Response preflight() {
-		HttpRequest request = session.getContext().getHttpRequest();
-		return Cors.add(request, Response.ok()).auth().allowedMethods("OPTIONS", "GET", "POST", "DELETE").preflight().build();
+		return Cors.builder()
+            .allowedMethods("OPTIONS", "GET", "POST", "DELETE")
+            .exposedHeaders(Cors.AUTHORIZATION_HEADER)
+            .auth()
+            .preflight()
+            .add(Response.ok());
 	}
 
     @GET
     @Path("all")
-    @NoCache
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
-    public Response getAllRoles(String identifier) {
+    public Response getAllRoles(@QueryParam("identifier") String identifier) {
         
         String tenant = assertUserHasTenant();
 
@@ -76,9 +79,7 @@ public class RoleRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getHttpRequest();
-
-        return Cors.add(request, Response
+        return Cors.builder().auth().allowAllOrigins().add(Response
             .ok(session.roles().searchForRolesStream(session.getContext().getRealm(), "", null, null)
                 .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                 .map(e -> toRoleDetail(e, 
@@ -86,13 +87,11 @@ public class RoleRestProvider implements RealmResourceProvider {
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
                 ))
-                .collect(Collectors.toList()))
-            ).auth().allowAllOrigins().build();
+                .collect(Collectors.toList())));
     }
 
     @GET
     @Path("byId")
-    @NoCache
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
     public Response getRoleById(
@@ -105,32 +104,26 @@ public class RoleRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getHttpRequest();
-
         RoleModel role = session.roles().getRoleById(session.getContext().getRealm(), id);
 
         if (role != null && role.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
-            return Cors.add(request, Response
+            return Cors.builder().auth().allowAllOrigins().add(Response
                 .ok(this.toRoleDetail(role,
                     session.users().getRoleMembersStream(session.getContext().getRealm(), role)
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
-                ))
-            ).auth().allowAllOrigins().build();    
+                )));    
         }
 
-        return Cors.add(request, Response
-            .status(Status.NOT_FOUND)            
-        ).auth().allowAllOrigins().build();
+        return Cors.builder().auth().allowAllOrigins().add(Response
+            .status(Status.NOT_FOUND));
     }
-
 
     @GET
     @Path("new")
-    @NoCache
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
-    public Response getNewRole(String identifier) {
+    public Response getNewRole(@QueryParam("identifier") String identifier) {
         
         assertUserHasTenant();
         
@@ -138,16 +131,13 @@ public class RoleRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
         
-        HttpRequest request = session.getContext().getHttpRequest();
 
-        return Cors.add(request, Response
-            .ok(new Role(UUID.randomUUID().toString(), "", null, null, null))
-            ).auth().allowAllOrigins().build();
+        return Cors.builder().auth().allowAllOrigins().add(Response
+            .ok(new Role(UUID.randomUUID().toString(), "", null, null, null)));
     }
 
     @POST
     @Path("save")
-    @NoCache
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Encoded
@@ -173,7 +163,6 @@ public class RoleRestProvider implements RealmResourceProvider {
 
         foldedClaims.put("tenant", Arrays.asList(new String[] { tenant }));
         
-        HttpRequest request = session.getContext().getHttpRequest();
 
         RoleModel existingRole = session.roles().getRoleById(session.getContext().getRealm(), role.getId());
 
@@ -214,13 +203,12 @@ public class RoleRestProvider implements RealmResourceProvider {
                 });
             } 
 
-            return Cors.add(request, Response
+            return Cors.builder().auth().allowAllOrigins().add(Response
                 .ok(this.toRoleDetail(existingRole,
                     session.users().getRoleMembersStream(session.getContext().getRealm(), existingRole)
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
-                ))
-            ).auth().allowAllOrigins().build();    
+                )));    
         } else if (existingRole == null) {
             if (!(userHasClaim("right", "identity.role.add") || userHasClaim("right", "tenant.role.add"))) {
                 throw new ForbiddenException();
@@ -239,24 +227,21 @@ public class RoleRestProvider implements RealmResourceProvider {
                 });
             } 
 
-            return Cors.add(request, Response
+            return Cors.builder().auth().allowAllOrigins().add(Response
                 .ok(this.toRoleDetail(newRole,
                     session.users().getRoleMembersStream(session.getContext().getRealm(), newRole)
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
-                ))
-            ).auth().allowAllOrigins().build();   
+                )));   
         }
 
-        return Cors.add(request, Response
-            .status(Status.NOT_FOUND)            
-        ).auth().allowAllOrigins().build();
+        return Cors.builder().auth().allowAllOrigins().add(Response
+            .status(Status.NOT_FOUND));
     }
 
     @DELETE
     @Path("remove/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @NoCache
     @Encoded
     public Response removeRole(
         @PathParam("id") String id) {
@@ -267,31 +252,26 @@ public class RoleRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getHttpRequest();
-
         RoleModel existingRole = session.roles().getRoleById(session.getContext().getRealm(), id);
 
         if (existingRole != null && existingRole.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
             
             session.roles().removeRole(existingRole);
 
-            return Cors.add(request, Response
+            return Cors.builder().auth().allowAllOrigins().add(Response
                 .ok(this.toRoleDetail(existingRole,
                     session.users().getRoleMembersStream(session.getContext().getRealm(), existingRole)
                         .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                         .collect(Collectors.toList())
-                ))
-            ).auth().allowAllOrigins().build();    
+                )));    
         }
 
-        return Cors.add(request, Response
-            .status(Status.NOT_FOUND)            
-        ).auth().allowAllOrigins().build();
+        return Cors.builder().auth().allowAllOrigins().add(Response
+            .status(Status.NOT_FOUND));
     }
 
     @GET
     @Path("selectlist")
-    @NoCache
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
     public Response getSelect() {
@@ -302,19 +282,15 @@ public class RoleRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getHttpRequest();
-
-        return Cors.add(request, Response
+        return Cors.builder().auth().allowAllOrigins().add(Response
             .ok(session.roles().searchForRolesStream(session.getContext().getRealm(), "", null, null)
                 .filter(r -> r.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant))
                 .map(e -> new RoleSelectlistEntry(e.getId(), e.getName()))
-                .collect(Collectors.toList()))
-            ).auth().allowAllOrigins().build();
+                .collect(Collectors.toList())));
     }
 
     @GET
     @Path("selectbyid/{id}")
-    @NoCache
     @Produces({MediaType.APPLICATION_JSON})
     @Encoded
     public Response getSelectById(
@@ -326,19 +302,15 @@ public class RoleRestProvider implements RealmResourceProvider {
             throw new ForbiddenException();
         }
 
-        HttpRequest request = session.getContext().getHttpRequest();
-
         RoleModel role = session.roles().getRoleById(session.getContext().getRealm(), id);
 
         if (role != null && role.getAttributes().getOrDefault("tenant", new ArrayList<String>()).contains(tenant)) {
-            return Cors.add(request, Response
-                .ok(new RoleSelectlistEntry(role.getId(), role.getName()))
-            ).auth().allowAllOrigins().build();    
+            return Cors.builder().auth().allowAllOrigins().add(Response
+                .ok(new RoleSelectlistEntry(role.getId(), role.getName())));    
         }
 
-        return Cors.add(request, Response
-            .status(Status.NOT_FOUND)            
-        ).auth().allowAllOrigins().build();
+        return Cors.builder().auth().allowAllOrigins().add(Response
+            .status(Status.NOT_FOUND));
     }
 
     private Role toRoleDetail(RoleModel rm, List<UserModel> assignedUser) {
