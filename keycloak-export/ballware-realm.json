@@ -3845,8 +3845,8 @@
     "fromDisplayName" : "Ballware Benutzerverwaltung",
     "user" : "noreply@ballware.de"
   },
-  "loginTheme" : "ballware",
-  "accountTheme" : "ballware",
+  "loginTheme" : "ballware-keycloakify",
+  "accountTheme" : "ballware-keycloakify",
   "adminTheme" : "keycloak.v2",
   "emailTheme" : "keycloak",
   "eventsEnabled" : true,

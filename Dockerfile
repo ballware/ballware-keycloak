@@ -6,10 +6,14 @@ RUN dnf install --installroot /mnt/rootfs tar gzip git --releasever 9 --setopt i
     rpm --root /mnt/rootfs -e --nodeps setup
 
 
-FROM maven:3.9-eclipse-temurin-21 AS themebuilder
-COPY ballware-theme/src /home/app/src
-COPY ballware-theme/pom.xml /home/app
-RUN mvn -f /home/app/pom.xml clean package
+FROM node:22-alpine AS keycloakifybuilder
+RUN apk add --no-cache openjdk21 maven
+WORKDIR /home/app
+COPY ballware-keycloakify/package*.json ./
+# npm ci would run postinstall (keycloakify sync-extensions) before ./src exists
+RUN npm ci --ignore-scripts
+COPY ballware-keycloakify/ ./
+RUN npx keycloakify sync-extensions && npm run build-keycloak-theme
 
 FROM maven:3.9-eclipse-temurin-21 AS mapperbuilder
 COPY token-mapper/src /home/app/src
@@ -22,7 +26,7 @@ COPY user-role-api/pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean package
 
 FROM quay.io/keycloak/keycloak:26.6 AS builder
-COPY --from=themebuilder  /home/app/target/*.jar /opt/keycloak/providers
+COPY --from=keycloakifybuilder /home/app/dist_keycloak/keycloak-theme-for-kc-all-other-versions.jar /opt/keycloak/providers/
 COPY --from=mapperbuilder  /home/app/target/*.jar /opt/keycloak/providers
 COPY --from=apibuilder  /home/app/target/*.jar /opt/keycloak/providers
 COPY ./import /opt/keycloak/data/import

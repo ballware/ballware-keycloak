@@ -16,6 +16,9 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       JDBC_PARAMS: trustServerCertificate=false;encrypt=false
       DEBUG_PORT: '*:8000'
+      # DevExtreme LCP key for the ballware-keycloakify theme (runtime only, never baked into the image).
+      # Set it in your shell or in a gitignored .devcontainer/.env; without it DevExtreme shows its trial banner (W0019).
+      DEVEXTREME_LICENSE: ${DEVEXTREME_LICENSE}
     ports:
       - '8080:8080'
       - '8443:8443'

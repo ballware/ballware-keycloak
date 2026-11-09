@@ -5,4 +5,16 @@ localhost.pem
 node
 
 .env
+.devcontainer/.env
 .idea
+
+ballware-keycloakify/node_modules
+ballware-keycloakify/dist
+ballware-keycloakify/dist_keycloak
+ballware-keycloakify/.keycloakify
+ballware-keycloakify/storybook-static
+ballware-keycloakify/test-results
+ballware-keycloakify/playwright-report
+ballware-keycloakify/e2e/screenshots
+ballware-keycloakify/license-key.local.txt
+ballware-keycloakify/.devextreme
