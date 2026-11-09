@@ -175,10 +175,13 @@ during the `package*.json`-only layer. The same applies to the account theme –
 `src/account/**` and `src/shared/**` (gitignored, recreated by `sync-extensions`) there is nothing to
 build.
 
-Devcontainer smoke test: `docker compose build && docker compose up`, then open the login page of
+Devcontainer smoke test: `docker compose -f ../.devcontainer/docker-compose.yml up --build` (Keycloak 26.8.2
+on `postgres:17`, `start-dev --import-realm`, admin `admin`/`admin`), then open the login page of
 `ballwareweb` – the raw HTML must contain `kcContext.themeName = "ballware-keycloakify"` – and
 `/realms/ballware/account/` for the branded account console (`accountTheme` must import cleanly,
-masthead `rgb(63, 81, 181)`, favicon `…/account/dist/favicon.ico`).
+masthead `rgb(63, 81, 181)`, favicon `…/account/dist/favicon.ico`). `kc-admin-api` must be listed in
+the realm's client scopes (`kcadm.sh get realms/ballware/client-scopes -r master`), otherwise the Admin
+Console and `kcadm` return 401 on 26.8.2.
 
 ## E2E (Playwright)
 
@@ -186,6 +189,21 @@ masthead `rgb(63, 81, 181)`, favicon `…/account/dist/favicon.ico`).
 npx keycloakify start-keycloak --keycloak-version 26 --port=4000   # keeps running in a second shell
 npm run e2e
 ```
+
+`start-keycloak` pulls `quay.io/keycloak/keycloak:26.8.2` and starts the vite dev server on 5173 by
+itself – do not run a second `npm run dev` (it lands on 5174 and the theme assets then miss the
+Keycloakify wiring). Current status on 26.8.2: **9/9 green**. The three account tests need Chrome's
+Private Network Access check relaxed, because the login SPA runs on
+`https://my-theme.keycloakify.dev` and its `oidc-spa` discovery targets the loopback address; recent
+Chrome versions block that fetch (`Permission was denied for this request to access the loopback
+address space`) and `assertNoPageErrors` then fails. Either keep the dev server on 5173 and run
+
+```bash
+npx playwright test --project=chrome --config=<config with launchOptions.args:
+  ["--disable-features=BlockInsecurePrivateNetworkRequests,PrivateNetworkAccessSendPreflights"]>
+```
+
+or serve the theme from the same origin as the SPA (jar-only path below).
 
 `playwright.config.ts` uses the installed desktop Chrome (`channel: "chrome"`), so no browser
 download is needed (`npx playwright install` is not required). Setup expectations of
