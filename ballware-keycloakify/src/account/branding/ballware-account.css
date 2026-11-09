@@ -1,0 +1,41 @@
+/* ballware branding for the account SPA (imported from src/account/KcAccountUi.tsx only). */
+
+:root {
+    --pf-v5-global--primary-color--100: #3f51b5;
+    --pf-v5-global--primary-color--200: #303f9f;
+    --pf-v5-global--primary-color--300: #7986cb;
+    --pf-v5-global--link--Color: #3f51b5;
+    --pf-v5-global--link--Color--hover: #303f9f;
+}
+
+/* PatternFly sets its dark tokens on :where(.pf-v5-theme-dark) (zero specificity),
+   so the accents above win; only the link tones are lifted for dark contrast. */
+:root.pf-v5-theme-dark {
+    --pf-v5-global--link--Color: #7986cb;
+    --pf-v5-global--link--Color--hover: #9fa8da;
+}
+
+/* (0,2,0) -> wins independently of the CSS import order.
+   Keycloakify's account SPA renders the masthead directly inside .pf-v5-c-page
+   (no .pf-v5-c-page__header wrapper), both shapes are covered. */
+.pf-v5-c-page .pf-v5-c-masthead,
+.pf-v5-c-page__header .pf-v5-c-masthead {
+    --pf-v5-c-masthead--BackgroundColor: #3f51b5;
+    --pf-v5-c-masthead--m-display-inline__main--MinHeight: 56px;
+    --pf-v5-c-masthead--m-display-inline__content--MinHeight: 56px;
+    --pf-v5-c-masthead--m-display-stack__main--MinHeight: 56px;
+    color: #fff;
+    box-shadow:
+        0 2px 4px -1px rgb(0 0 0 / 20%),
+        0 4px 5px 0 rgb(0 0 0 / 14%),
+        0 1px 10px 0 rgb(0 0 0 / 12%);
+}
+
+.pf-v5-c-masthead .pf-v5-c-toolbar {
+    --pf-v5-c-toolbar--BackgroundColor: #3f51b5;
+}
+
+.pf-v5-c-page__sidebar .pf-v5-c-nav {
+    --pf-v5-c-nav__link--m-current--BackgroundColor: #3f51b5;
+    --pf-v5-c-nav__link--m-current--Color: #fff;
+}

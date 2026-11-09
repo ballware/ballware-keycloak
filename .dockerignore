@@ -12,7 +12,6 @@ dist_keycloak
 .keycloakify
 storybook-static
 **/target
-ballware-theme/target
 ballware-keycloakify/node_modules
 ballware-keycloakify/dist
 ballware-keycloakify/dist_keycloak

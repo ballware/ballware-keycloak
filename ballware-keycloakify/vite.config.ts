@@ -8,7 +8,7 @@ export default defineConfig({
         react(),
         keycloakify({
             themeName: "ballware-keycloakify",
-            accountThemeImplementation: "none",
+            accountThemeImplementation: "Single-Page",
             // Only the Keycloak 26 jar ("all-other-versions") is needed, skip the KC 22..25 build
             keycloakVersionTargets: {
                 "22-to-25": false,

@@ -43,4 +43,4 @@ export function applyDxLicense(kcContext: KcContext | undefined): void {
     };
 }
 
-applyDxLicense(window.kcContext);
+applyDxLicense(window.kcContext?.themeType === "login" ? window.kcContext : undefined);
