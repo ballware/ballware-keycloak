@@ -59,6 +59,8 @@ jspm_packages
 /test-results
 /playwright-report
 /e2e/screenshots
+/license-key.local.txt
+/.devextreme
 
 # build output of `jsx-email`
 /.rendered

@@ -67,6 +67,26 @@ Expected console output per state:
 | `LCX…` / `ewog…` key (`W0021`) | wrong key format, convert with `devextreme-license` |
 | `W0020` | `maxVersionAllowed` of the key is below the package version – pin `devextreme`/`devextreme-react` to the highest covered version (both always identical) |
 
+### LCX → LCP (existing DevExpress keys)
+
+DevExtreme 26 only accepts **LCP** keys; a classic `LCX…` product key is rejected with `W0021` and the
+trial panel stays visible. The converter ships inside the `devextreme` package (`node_modules/.bin/devextreme-license`)
+and works offline – it reads the LCX key from the `DevExpress_License` environment variable (or
+`DevExpress_License.txt` / `DevExpress_LicensePath`):
+
+```bash
+DevExpress_License='<LCX…key…>' npm run license:lcp
+# -> license-key.local.txt (gitignored): export const licenseKey = 'LCPv…';
+```
+
+Put that `LCPv…` value into the Keycloak environment (`DEVEXTREME_LICENSE=…`) and restart Keycloak.
+Verified with this theme: `kcContext.properties.DEVEXTREME_LICENSE` → `window.DevExpress.config.licenseKey`,
+`dx-license` / `dx-license-trigger` elements absent, zero `W00xx` console warnings, login page renders
+without the orange trial banner. With the unconverted `LCX…` key the same run shows
+`trialPanelPresent: true` plus `W0019`/`W0021` – i.e. the wiring is correct, only the key format was wrong.
+Regenerate the LCP key after every `devextreme`/`devextreme-react` version bump (`W0020` when the key's
+`maxVersionAllowed` is lower than the package version).
+
 Checks: `grep -r "DEVEXTREME_LICENSE" dist_keycloak/` shows only the variable name; no
 `LCP…` value is present in the jar. `devextreme` and `devextreme-react` are pinned to the same
 version (exact peer dependency).

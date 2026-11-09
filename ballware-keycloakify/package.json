@@ -9,6 +9,7 @@
         "build-keycloak-theme": "npm run build && keycloakify build",
         "lint": "eslint .",
         "e2e": "playwright test",
+        "license:lcp": "devextreme-license --out license-key.local.txt --no-gitignore --force",
         "storybook": "storybook dev -p 6006",
         "format": "prettier . --write"
     },
